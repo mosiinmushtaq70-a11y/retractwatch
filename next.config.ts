@@ -12,10 +12,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-```
-
-Save the file, then:
-```
-git add next.config.ts
-git commit -m "fix: resolve merge conflict in next.config"
-git push origin main --force --no-verify
