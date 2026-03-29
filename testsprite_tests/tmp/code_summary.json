@@ -1,0 +1,37 @@
+{
+  "version": "2",
+  "type": "frontend",
+  "tech_stack": [
+    "TypeScript",
+    "Next.js 15",
+    "React 19",
+    "Tailwind CSS 4",
+    "Convex"
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "file": "app/page.tsx",
+      "auth_required": false,
+      "description": "Home — PDF upload and paste references"
+    },
+    {
+      "path": "/results/[jobId]",
+      "file": "app/results/[jobId]/page.tsx",
+      "auth_required": false,
+      "description": "Job results"
+    }
+  ],
+  "features": [
+    {
+      "name": "PDF bibliography scan",
+      "description": "Extract citations from PDF and start integrity job",
+      "files": ["app/page.tsx", "app/api/extract/route.ts", "app/api/check/route.ts"]
+    },
+    {
+      "name": "Paste references scan",
+      "description": "Start job from pasted lines",
+      "files": ["app/page.tsx", "app/api/check/route.ts"]
+    }
+  ]
+}

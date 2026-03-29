@@ -1,0 +1,71 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - Next.js 15 (App Router)
+  - React 19
+  - Tailwind CSS 4
+  - Convex (realtime backend)
+routes:
+  - path: /
+    file: app/page.tsx
+    auth_required: false
+    description: Home — upload PDF or paste references to start integrity scan
+  - path: /results/[jobId]
+    file: app/results/[jobId]/page.tsx
+    auth_required: false
+    description: Live job results, citations, cascade graph, downloads
+features:
+  - name: PDF bibliography scan
+    description: User uploads a PDF; app extracts citations then starts integrity job
+    files:
+      - app/page.tsx
+      - app/api/extract/route.ts
+      - app/api/check/route.ts
+    entry_route: /
+    user_interactions:
+      - Click or drop zone to choose a PDF under 10MB
+      - Wait for extraction and scan overlay messages
+      - Land on results page with job id in URL
+    api_calls:
+      - method: POST
+        endpoint: /api/extract
+      - method: POST
+        endpoint: /api/check
+    auth_required: false
+  - name: Paste references scan
+    description: User pastes one reference per line; app builds citation stubs and starts job
+    files:
+      - app/page.tsx
+      - app/api/check/route.ts
+    entry_route: /
+    user_interactions:
+      - Type or paste lines into references textarea
+      - Click Analyze bibliography
+      - Navigate to results when job starts
+    api_calls:
+      - method: POST
+        endpoint: /api/check
+    auth_required: false
+  - name: Results dashboard
+    description: View citation feed, scores, cascade, historical comparison, report download
+    files:
+      - app/results/[jobId]/page.tsx
+      - app/results/[jobId]/ResultsPageClient.tsx
+      - components/CitationFeed.tsx
+    entry_route: /results/[jobId]
+    user_interactions:
+      - Open shared results URL
+      - Scroll feed and panels
+      - Use recheck or download actions if present
+    api_calls:
+      - method: POST
+        endpoint: /api/recheck-cascade
+    auth_required: false
+known_limitations:
+  - issue: Live scan requires NEXT_PUBLIC_CONVEX_URL and convex dev; otherwise home shows configuration error
+    location: app/page.tsx
+    impact: E2E may assert error state instead of full pipeline without env
+  - issue: Extract and check call external LLM and APIs; flaky or slow under automation
+    location: app/api/extract/route.ts, app/api/check/route.ts
+    impact: Tests may need mocks or generous timeouts
