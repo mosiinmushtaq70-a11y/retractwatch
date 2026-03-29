@@ -1,0 +1,206 @@
+[
+  {
+    "id": "TC001",
+    "title": "Home loads primary scan inputs",
+    "description": "Verifies the home page presents the primary inputs for starting a bibliography scan.",
+    "category": "PDF bibliography scan",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a PDF selection area is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a references input area is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Start paste references scan and land on results",
+    "description": "Verifies a user can start a scan by pasting references and is navigated to a live results page.",
+    "category": "Paste references scan",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Fill sample reference lines into the references field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the bibliography analysis"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on a results page for a newly created job"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify job results content is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Paste references validation blocks empty submission",
+    "description": "Verifies the app prevents starting a job when the references input is empty and shows a validation error.",
+    "category": "Paste references scan",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Fill whitespace-only content into the references field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the bibliography analysis"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an inline validation error is visible for the references field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user remains on the home page"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Paste references accepts multiple lines and starts scan",
+    "description": "Verifies a multi-line references paste starts a scan and navigates to results.",
+    "category": "Paste references scan",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Fill multiple distinct reference lines into the references field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the bibliography analysis"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on a results page for a newly created job"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Home handles configuration missing state",
+    "description": "Verifies the home page shows a configuration error state that blocks starting a live scan when required configuration is missing.",
+    "category": "PDF bibliography scan",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to start a scan from the home page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a configuration error is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no navigation to a results page occurs"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Results page route is not directly testable due to dynamic jobId",
+    "description": "Ensures automated navigation only uses static routes; results page verification is covered via journeys that navigate from home after creating a job.",
+    "category": "Results dashboard",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the home page is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Results display loads after starting scan from paste flow",
+    "description": "Verifies results dashboard renders primary content after creating a job via the paste references flow.",
+    "category": "Results dashboard",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Fill sample reference lines into the references field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the bibliography analysis"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify job results content is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a citation list or feed is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Results page supports basic scrolling through content",
+    "description": "Verifies a user can scroll the results dashboard and continue to see job-related content sections.",
+    "category": "Results dashboard",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Fill sample reference lines into the references field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the bibliography analysis"
+      },
+      {
+        "type": "action",
+        "description": "Scroll down the results page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify additional job-related results content is displayed"
+      }
+    ]
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "projectType": "backend",
+  "testType": "backend",
+  "localPort": 3011,
+  "testScope": "codebase",
+  "needLogin": false,
+  "baseUrl": "http://localhost:3011"
+}
