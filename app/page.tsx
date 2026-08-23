@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { AnalysisLoadingOverlay } from "@/components/AnalysisLoadingOverlay";
 import { hasConvexUrl } from "@/lib/convexEnv";
+import { extractDoiFromText } from "@/lib/doiUtils";
 
 export default function HomePage() {
   const router = useRouter();
@@ -88,8 +89,8 @@ export default function HomePage() {
 
   const runPasteFlow = useCallback(async () => {
     setError("");
-    const lines = paste.split("\n").map((l) => l.trim()).filter(Boolean);
-    if (!lines.length) {
+    const trimmed = paste.trim();
+    if (!trimmed) {
       setError("Paste at least one reference line, or upload a PDF.");
       return;
     }
@@ -103,15 +104,52 @@ export default function HomePage() {
 
     setLoading(true);
     setStep(0);
-    setLoadMsg("Preparing references…");
+    setLoadMsg("Extracting bibliography references…");
 
     try {
-      const citations = lines.map((line) => ({
-        title: line.slice(0, 800),
-        authors: "Unknown",
-        year: null,
-        doi: null,
-      }));
+      let citations: Array<{ title: string; authors?: string; year?: number | null; doi?: string | null }> = [];
+
+      // Attempt high-accuracy LLM extraction first (e.g. via Groq / OpenAI)
+      try {
+        const exRes = await fetch("/api/extract-text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: trimmed }),
+        });
+        if (exRes.ok) {
+          const exData = (await exRes.json()) as { citations?: typeof citations };
+          if (Array.isArray(exData.citations) && exData.citations.length > 0) {
+            citations = exData.citations;
+          }
+        }
+      } catch {
+        /* fallback below */
+      }
+
+      // Fallback: parse lines locally and extract DOIs directly
+      if (!citations.length) {
+        const lines = trimmed.split("\n").map((l) => l.trim()).filter(Boolean);
+        const entries: string[] = [];
+        let current = "";
+
+        for (const line of lines) {
+          if (/^(\[\d+\]|\d+[\.\)]|\*\s+)/.test(line)) {
+            if (current) entries.push(current);
+            current = line;
+          } else {
+            current = current ? `${current} ${line}` : line;
+          }
+        }
+        if (current) entries.push(current);
+
+        const targetList = entries.length > 0 ? entries : lines;
+        citations = targetList.map((entry) => ({
+          title: entry.slice(0, 800),
+          authors: "Unknown",
+          year: null,
+          doi: extractDoiFromText(entry),
+        }));
+      }
 
       setStep(1);
       setLoadMsg("Cross-checking DOIs, retractions, and cascades…");

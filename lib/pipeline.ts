@@ -8,8 +8,8 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { mapPool } from "./asyncPool";
 import { resolveDoiFromTitle } from "./crossref";
 import { calculateDownstreamRisk } from "./downstreamRisk";
-import { findReplacementPapers } from "./exa";
 import { compareToHistoricalCases } from "./historicalCases";
+import { extractDoiFromText, cleanTitleForCrossRef } from "./doiUtils";
 import { isRetracted } from "./retractionWatch";
 import {
   calculateIntegrityScore as scoreFromScoringTable,
@@ -240,9 +240,10 @@ export async function runPipeline(
           status: c.status,
         });
 
-        let doi = c.doi?.trim() || null;
+        let doi = c.doi?.trim() || extractDoiFromText(c.title) || null;
         if (!doi) {
-          doi = await resolveDoiFromTitleWrapper(c.title, c.authors);
+          const queryTitle = cleanTitleForCrossRef(c.title);
+          doi = await resolveDoiFromTitleWrapper(queryTitle, c.authors);
         }
 
         if (!doi) {
