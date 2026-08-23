@@ -45,8 +45,8 @@ export function loadLlmExtractConfig():
 
   // Smart defaults and compatibility fallbacks
   if (baseURL?.includes("groq.com")) {
-    if (!model || model === "llama-3.3-70b-versatile" || model === "gpt-4o") {
-      model = "openai/gpt-oss-120b";
+    if (!model || model === "llama-3.3-70b-versatile" || model === "gpt-4o" || model === "openai/gpt-oss-120b") {
+      model = "llama-3.1-8b-instant";
     }
   } else if (!model) {
     model = "gpt-4o";
@@ -56,8 +56,8 @@ export function loadLlmExtractConfig():
 
   const maxRaw = process.env.LLM_MAX_COMPLETION_TOKENS?.trim();
   const maxCompletionTokens = maxRaw
-    ? Math.min(32768, Math.max(256, Number(maxRaw) || 4000))
-    : 4000;
+    ? Math.min(32768, Math.max(256, Number(maxRaw) || 8000))
+    : 8000;
 
   const re = process.env.LLM_REASONING_EFFORT?.trim().toLowerCase();
   const reasoningEffort =

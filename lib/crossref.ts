@@ -22,6 +22,9 @@ export async function resolveDoiFromTitle(
 
     if (cleanQuery.length < 5) return null;
 
+    // Jitter to prevent burst rate-limiting when concurrency is used
+    await sleep(Math.floor(Math.random() * 200) + 100);
+
     const q = encodeURIComponent(cleanQuery);
     // Use query.bibliographic for academic references with author/journal/year
     let url = `https://api.crossref.org/works?query.bibliographic=${q}&rows=3&mailto=${encodeURIComponent(MAILTO)}`;
