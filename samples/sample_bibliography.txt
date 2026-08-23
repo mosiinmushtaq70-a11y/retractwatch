@@ -1,0 +1,11 @@
+REFERENCES
+
+1. Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017). Attention is all you need. Advances in Neural Information Processing Systems, 30. doi:10.48550/arXiv.1706.03762
+
+2. Mehra, M. R., Desai, S. S., Ruschitzka, F., & Patel, A. N. (2020). Hydroxychloroquine or chloroquine with or without a macrolide for treatment of COVID-19: a multinational registry analysis. The Lancet. doi:10.1016/S0140-6736(20)31180-6
+
+3. Wakefield, A. J., Murch, S. H., Anthony, A., Linnell, J., Casson, D. M., Malik, M., Berelowitz, M., Dhillon, A. P., Thomson, M. A., Harvey, P., Valentine, A., Davies, S. E., & Walker-Smith, J. A. (1998). Ileal-lymphoid-nodular hyperplasia, non-specific colitis, and pervasive developmental disorder in children. The Lancet, 351(9103), 637-641. doi:10.1016/S0140-6736(97)11096-0
+
+4. Obokata, H., Sasai, Y., Niwa, H., Kadota, M., Andrabi, M., Takata, N., Tokuzawa, Y., Takeichi, M., & Vacanti, C. A. (2014). Stimulus-triggered fate conversion of somatic cells into pluripotency. Nature, 505(7485), 641-647. doi:10.1038/nature12968
+
+5. Chen, L., & Wu, H. (2021). Systematic review and meta-analysis of antiviral therapies in hospitalized patients. Journal of Medical Virology, 93(4), 1882-1891.
