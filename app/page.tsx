@@ -219,43 +219,43 @@ export default function HomePage() {
               ))}
             </div>
 
-            <section className="mt-12 sm:mt-14">
-              <h2 className="text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <section className="mt-6 sm:mt-8">
+              <h2 className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                 How it works
               </h2>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3 sm:gap-4">
+              <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-4">
                 {[
                   {
                     icon: "📄",
-                    title: "Upload your PDF",
-                    body: "Drop your manuscript or paste references — we extract the bibliography.",
+                    title: "1. Upload PDF",
+                    body: "Drop manuscript or paste references.",
                   },
                   {
                     icon: "🔍",
-                    title: "We scan retraction data",
-                    body: "Each resolved reference is checked against the Retraction Watch index plus CrossRef and Semantic Scholar.",
+                    title: "2. Scan Index",
+                    body: "Check 57K+ records & citation cascades.",
                   },
                   {
                     icon: "📊",
-                    title: "Get your integrity score",
-                    body: "Direct + cascade detection with replacement suggestions; results save online so you can return to them.",
+                    title: "3. Get Score",
+                    body: "Integrity rating & clean replacements.",
                   },
                 ].map((s) => (
                   <div
                     key={s.title}
-                    className="rounded-xl border border-white/10 bg-slate-950/40 p-4 text-center backdrop-blur-sm"
+                    className="flex flex-col items-center justify-center rounded-xl border border-white/10 bg-slate-950/40 p-2.5 text-center backdrop-blur-sm sm:p-4"
                   >
-                    <span className="text-xl sm:text-2xl" aria-hidden>
+                    <span className="text-base sm:text-2xl" aria-hidden>
                       {s.icon}
                     </span>
-                    <p className="mt-2 text-sm font-semibold text-white">{s.title}</p>
-                    <p className="mt-1.5 text-xs leading-snug text-slate-400">{s.body}</p>
+                    <p className="mt-1 text-xs font-semibold text-white sm:mt-2 sm:text-sm">{s.title}</p>
+                    <p className="mt-0.5 text-[10px] leading-tight text-slate-400 sm:mt-1.5 sm:text-xs sm:leading-snug">{s.body}</p>
                   </div>
                 ))}
               </div>
             </section>
 
-            <p className="mt-8 text-center text-xs text-slate-500 sm:mt-10">
+            <p className="mt-4 text-center text-[11px] text-slate-500 sm:mt-6 sm:text-xs">
               Powered by{" "}
               <span className="text-slate-400">Retraction Watch</span>
               {" · "}
