@@ -169,7 +169,8 @@ export async function POST(request: Request) {
       const completion = await openai.chat.completions.create({
         model,
         temperature: 0,
-        max_completion_tokens: maxCompletionTokens,
+        max_tokens: maxCompletionTokens,
+        ...(llm.config.jsonMode ? { response_format: { type: "json_object" } } : {}),
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           {
