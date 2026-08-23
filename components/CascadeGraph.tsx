@@ -9,14 +9,8 @@ type Props = {
   highlightId: string | null;
 };
 
-<<<<<<< HEAD
 /** Above this count we default to summary cards (faster scan); user can open full graph. */
 const SUMMARY_THRESHOLD = 24;
-=======
-const SUMMARY_THRESHOLD = 10;
-/** Cap SVG dot nodes so large bibliographies stay interactive (graph view only). */
-const MAX_GRAPH_DOT_NODES = 96;
->>>>>>> 747d616 (fix: exclude CSV from build bundle)
 
 /** Graph layout: ~2× prior spacing (no d3 in project — approximates larger collide radius). */
 const COLS_FLAG = 2;

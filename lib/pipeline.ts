@@ -9,6 +9,7 @@ import { mapPool } from "./asyncPool";
 import { resolveDoiFromTitle } from "./crossref";
 import { calculateDownstreamRisk } from "./downstreamRisk";
 import { findReplacementPapers } from "./exa";
+import { compareToHistoricalCases } from "./historicalCases";
 import { isRetracted } from "./retractionWatch";
 import {
   calculateIntegrityScore as scoreFromScoringTable,
@@ -199,7 +200,7 @@ export async function runPipeline(
       score,
     );
     const downstream = calculateDownstreamRisk(scoringRows);
-    const histPayload = historicalPayloadForJob(hist);
+    const histPayload = hist;
 
     await emitJob({
       phase: 5,
@@ -444,42 +445,6 @@ export async function runPipeline(
     }
   }
 
-<<<<<<< HEAD
-=======
-  // Phase 5 — Score calculation + analytics for job row
-  await emitJob({ phase: 5, name: "score_calculation" });
-  let integrityScore = 100;
-  try {
-    integrityScore = scoreFromScoringTable(pipelineToScoringCitations(citations));
-  } catch {
-    integrityScore = 0;
-  }
-
-  const scoringRows = pipelineToScoringCitations(citations);
-  const downstream = calculateDownstreamRisk(scoringRows);
-
-  await emitJob({
-    phase: 5,
-    integrityScore,
-    processedCount: citations.length,
-    status: "complete",
-    downstreamRisk: downstream,
-    perCitation: citations.map((x) => ({
-      id: x.id,
-      status: x.status,
-      doi: x.doi,
-    })),
-  });
-
-  await emitJob({
-    event: "pipeline_complete",
-    integrityScore,
-    status: "complete",
-    processedCount: citations.length,
-    downstreamRisk: downstream,
-  });
-
->>>>>>> 747d616 (fix: exclude CSV from build bundle)
   return { citations, integrityScore };
 }
 

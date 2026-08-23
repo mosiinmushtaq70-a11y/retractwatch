@@ -7,26 +7,6 @@ import { hasConvexUrl } from "@/lib/convexEnv";
 type Props = { jobId: string };
 
 export function ResultsPageClient({ jobId }: Props) {
-<<<<<<< HEAD
-=======
-  if (jobId === "demo") {
-    const citations = normalizeCitations(MOCK_CITATIONS as unknown[]);
-    const job: JobViewModel = {
-      status: MOCK_JOB?.status ?? undefined,
-      integrityScore: MOCK_JOB?.integrityScore ?? undefined,
-      downstreamRisk: MOCK_JOB?.downstreamRisk,
-    };
-    return (
-      <ResultsLayout
-        jobId="demo"
-        job={job}
-        citations={citations}
-        dataSource="demo"
-      />
-    );
-  }
-
->>>>>>> 747d616 (fix: exclude CSV from build bundle)
   const convexConfigured = hasConvexUrl();
 
   if (!convexConfigured) {
@@ -38,13 +18,8 @@ export function ResultsPageClient({ jobId }: Props) {
           <code className="rounded bg-slate-800 px-1 py-0.5 text-slate-300">
             NEXT_PUBLIC_CONVEX_URL
           </code>{" "}
-<<<<<<< HEAD
-          to <code className="text-slate-400">.env.local</code>, restart the dev
+          in <code className="text-slate-400">.env.local</code>, restart the dev
           server, then open this job again.
-=======
-          in <code className="text-slate-400">.env.local</code> (your hosted backend),
-          restart the dev server, then run an analysis again.
->>>>>>> 747d616 (fix: exclude CSV from build bundle)
         </p>
         {jobId ? (
           <p className="mt-4 font-mono text-xs text-slate-600">Job: {jobId}</p>

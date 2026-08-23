@@ -7,17 +7,10 @@ type Props = {
 };
 
 const steps = [
-<<<<<<< HEAD
   "Parsing bibliography…",
   "Resolving identifiers…",
   "Scanning retraction corpus…",
   "Building cascade graph…",
-=======
-  "Extracting bibliography from PDF…",
-  "Cross-checking DOIs against Retraction Watch (~57K public records)…",
-  "Detecting cascade contamination…",
-  "Calculating integrity score…",
->>>>>>> 747d616 (fix: exclude CSV from build bundle)
 ];
 
 export function AnalysisLoadingOverlay({ open, message, step }: Props) {

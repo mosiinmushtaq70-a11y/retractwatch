@@ -50,13 +50,7 @@ export function ResultsLayout({
             <p className="font-mono text-sm text-slate-300">{jobId}</p>
             {dataSource ? (
               <p className="mt-1 text-[10px] uppercase tracking-wider text-slate-600">
-<<<<<<< HEAD
                 Live · Convex
-=======
-                {dataSource === "convex"
-                  ? "Full results · saved online"
-                  : "Demo · sample data"}
->>>>>>> 747d616 (fix: exclude CSV from build bundle)
               </p>
             ) : null}
           </div>
