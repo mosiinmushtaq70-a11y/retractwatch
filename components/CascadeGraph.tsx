@@ -21,6 +21,7 @@ const NODE_H_FLAG = 58;
 const HUB_BOTTOM = 58;
 const DOT_R = 4;
 const DOT_GAP = 22;
+const MAX_GRAPH_DOT_NODES = 48;
 
 type LegendKey = "clean" | "retracted" | "cascade" | "unverified";
 
