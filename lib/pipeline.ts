@@ -10,6 +10,7 @@ import { resolveDoiFromTitle } from "./crossref";
 import { calculateDownstreamRisk } from "./downstreamRisk";
 import { compareToHistoricalCases } from "./historicalCases";
 import { extractDoiFromText, cleanTitleForCrossRef } from "./doiUtils";
+import { findReplacementPapers } from "./exa";
 import { isRetracted } from "./retractionWatch";
 import {
   calculateIntegrityScore as scoreFromScoringTable,
@@ -25,6 +26,7 @@ import type {
   ReplacementRow,
   RetractionRecord,
 } from "./pipeline-types";
+
 
 export type {
   PipelineCitation,
