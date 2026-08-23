@@ -235,7 +235,7 @@ export function CitationFeed({
                           st === "cascade"
                             ? "This citation is clean but cites a retracted paper — indirect contamination detected"
                             : st === "unverified"
-                              ? "This citation could not be matched to a DOI. It may still be valid — please verify manually."
+                              ? "We could not verify this paper — treat with caution."
                               : undefined
                         }
                       >
@@ -285,6 +285,11 @@ export function CitationFeed({
                       {c?.authors?.trim() ? c.authors : "—"}
                       {c?.year != null ? ` · ${c.year}` : ""}
                     </p>
+                    {c?.authorWarning && (
+                      <p className="mt-1 border-l-2 border-red-500/60 pl-3 text-[11px] leading-snug text-red-200/90 break-words [overflow-wrap:anywhere]">
+                        ⚠️ {c.authorWarning}
+                      </p>
+                    )}
                     {(st === "retracted" || st === "cascade") &&
                     (c?.retractionCountry || c?.retractionJournal) ? (
                       <OriginBadge

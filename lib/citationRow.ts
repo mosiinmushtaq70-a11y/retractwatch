@@ -16,6 +16,7 @@ export type CitationRow = {
   retractionJournal?: string | null;
   cascadeDepth?: number | null;
   cascadeVia?: string | null;
+  authorWarning?: string | null;
 };
 
 export function normalizeCitation(doc: unknown): CitationRow | null {
@@ -52,6 +53,7 @@ export function normalizeCitation(doc: unknown): CitationRow | null {
     cascadeDepth:
       typeof d.cascadeDepth === "number" ? d.cascadeDepth : undefined,
     cascadeVia: d.cascadeVia != null ? String(d.cascadeVia) : undefined,
+    authorWarning: d.authorWarning != null ? String(d.authorWarning) : undefined,
   };
 }
 
