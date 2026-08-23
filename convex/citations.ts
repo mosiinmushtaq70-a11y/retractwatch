@@ -33,6 +33,30 @@ export const createCitation = mutation({
   },
 });
 
+/** api.citations.createCitationsBatch */
+export const createCitationsBatch = mutation({
+  args: {
+    citations: v.array(
+      v.object({
+        jobId: v.id("jobs"),
+        title: v.string(),
+        authors: v.string(),
+        year: v.optional(v.number()),
+        doi: v.optional(v.string()),
+        status: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const ids = [];
+    for (const c of args.citations) {
+      const id = await ctx.db.insert("citations", c);
+      ids.push(id);
+    }
+    return ids;
+  },
+});
+
 /** api.citations.updateCitation */
 export const updateCitation = mutation({
   args: {

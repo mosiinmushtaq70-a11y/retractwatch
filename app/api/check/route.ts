@@ -110,31 +110,59 @@ export async function POST(request: Request) {
 
   const pipelineCitations: PipelineCitation[] = [];
 
-  for (const row of rows) {
-    try {
-      const citationId = await client.mutation(api.citations.createCitation, {
-        jobId: convexJobId,
-        title: row.title,
-        authors: row.authors,
-        year: row.year,
-        doi: row.doi,
-        status: "pending",
-      });
+  try {
+    const citationIds = (await client.mutation(
+      api.citations.createCitationsBatch,
+      {
+        citations: rows.map((row) => ({
+          jobId: convexJobId,
+          title: row.title,
+          authors: row.authors,
+          year: row.year,
+          doi: row.doi,
+          status: "pending",
+        })),
+      },
+    )) as Id<"citations">[];
 
+    for (let i = 0; i < rows.length; i++) {
       pipelineCitations.push({
-        id: String(citationId),
-        title: row.title,
-        authors: row.authors,
-        year: row.year,
-        doi: row.doi,
+        id: String(citationIds[i]),
+        title: rows[i].title,
+        authors: rows[i].authors,
+        year: rows[i].year,
+        doi: rows[i].doi,
         status: "pending",
       });
-    } catch (e) {
-      console.error("[check] createCitation failed", e);
-      return NextResponse.json(
-        { error: "Failed to save citations" },
-        { status: 500 },
-      );
+    }
+  } catch {
+    // Fallback to sequential insertion if batch mutation is not deployed yet
+    for (const row of rows) {
+      try {
+        const citationId = await client.mutation(api.citations.createCitation, {
+          jobId: convexJobId,
+          title: row.title,
+          authors: row.authors,
+          year: row.year,
+          doi: row.doi,
+          status: "pending",
+        });
+
+        pipelineCitations.push({
+          id: String(citationId),
+          title: row.title,
+          authors: row.authors,
+          year: row.year,
+          doi: row.doi,
+          status: "pending",
+        });
+      } catch (e) {
+        console.error("[check] createCitation failed", e);
+        return NextResponse.json(
+          { error: "Failed to save citations" },
+          { status: 500 },
+        );
+      }
     }
   }
 
@@ -190,6 +218,7 @@ export async function POST(request: Request) {
           processedCount?: number;
           integrityScore?: number;
           paperTitle?: string;
+          historicalComparison?: unknown;
           downstreamRisk?: unknown;
         } = { jobId: convexJobId };
 
@@ -204,6 +233,9 @@ export async function POST(request: Request) {
           patch.integrityScore = u.integrityScore;
         }
         if (typeof u.paperTitle === "string") patch.paperTitle = u.paperTitle;
+        if (u.historicalComparison !== undefined) {
+          patch.historicalComparison = u.historicalComparison;
+        }
         if (u.downstreamRisk !== undefined) {
           patch.downstreamRisk = u.downstreamRisk;
         }

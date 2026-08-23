@@ -20,7 +20,7 @@ export const getReplacementsForCitation = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("replacements")
-      .filter((q) => q.eq(q.field("citationId"), args.citationId))
+      .withIndex("by_citation", (q) => q.eq("citationId", args.citationId))
       .collect();
   },
 });
@@ -32,7 +32,7 @@ export const getReplacementsForCitations = query({
     for (const cid of args.citationIds) {
       const reps = await ctx.db
         .query("replacements")
-        .filter((q) => q.eq(q.field("citationId"), cid))
+        .withIndex("by_citation", (q) => q.eq("citationId", cid))
         .collect();
       results.push(...reps);
     }
