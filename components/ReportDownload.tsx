@@ -129,10 +129,6 @@ export function ReportDownload({ job, citations }: Props) {
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-900/40 px-5 py-4">
       <div>
         <p className="text-sm font-medium text-white">Export report</p>
-        <p className="text-xs text-slate-400">
-          Opens the system print dialog (save as PDF). If nothing happens, use
-          Download HTML and open the file, then print.
-        </p>
       </div>
       <div className="flex flex-wrap gap-2">
         <button

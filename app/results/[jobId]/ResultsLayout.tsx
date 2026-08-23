@@ -106,19 +106,23 @@ export function ResultsLayout({
                 </p>
                 <div className="mx-auto mt-6 grid max-w-3xl gap-3 lg:grid-cols-2">
                   <div className="h-40 rounded-xl border border-white/5 bg-slate-800/40 rw-shimmer" />
-                  <div className="h-40 rounded-xl border border-white/5 bg-slate-800/40 rw-shimmer" />
+                  <div className="hidden md:block h-40 rounded-xl border border-white/5 bg-slate-800/40 rw-shimmer" />
                 </div>
               </div>
             ) : (
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                <CitationFeed
-                  citations={citations}
-                  onSelectedCitationChange={setSelectedId}
-                />
-                <CascadeGraph
-                  citations={citations}
-                  highlightId={selectedId}
-                />
+                <div className="min-w-0">
+                  <CitationFeed
+                    citations={citations}
+                    onSelectedCitationChange={setSelectedId}
+                  />
+                </div>
+                <div className="hidden md:block min-w-0">
+                  <CascadeGraph
+                    citations={citations}
+                    highlightId={selectedId}
+                  />
+                </div>
               </div>
             )}
 

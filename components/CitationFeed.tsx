@@ -98,9 +98,9 @@ export function CitationFeed({
       : list.filter((c) => (c?.status ?? "pending") === filter);
 
   return (
-    <div className="flex h-full min-h-[420px] flex-col rounded-2xl border border-white/10 bg-[var(--rw-card)] backdrop-blur-md">
-      <div className="border-b border-white/10 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex h-full min-h-[420px] w-full min-w-0 max-w-full flex-col rounded-2xl border border-white/10 bg-[var(--rw-card)] backdrop-blur-md overflow-hidden">
+      <div className="border-b border-white/10 p-4 min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 min-w-0">
           <div>
             <h2 className="text-sm font-semibold text-white">Citation feed</h2>
             <p className="text-xs text-slate-400">
@@ -155,7 +155,7 @@ export function CitationFeed({
       </div>
 
       {showAllSuggestions && (
-        <div className="border-b border-white/10 bg-slate-950/60 px-4 py-3">
+        <div className="border-b border-white/10 bg-slate-950/60 px-4 py-3 min-w-0 max-w-full">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-blue-300/80">
             All Replacement Suggestions · Powered by Exa AI
           </p>
@@ -164,36 +164,34 @@ export function CitationFeed({
           ) : flaggedCitations.length === 0 ? (
             <p className="text-xs text-slate-500">No flagged citations to suggest replacements for.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 min-w-0 max-w-full">
               {flaggedCitations.map((c) => {
                 const citReps = (allReplacements ?? []).filter(
                   (r) => r.citationId === c.id,
                 );
                 return (
-                  <div key={c.id}>
-                    <p className="text-[11px] font-medium text-slate-300 truncate">
+                  <div key={c.id} className="min-w-0 max-w-full">
+                    <p className="text-[11px] font-medium text-slate-300 break-words [overflow-wrap:anywhere]">
                       {c.title?.trim() ? c.title : "—"}
                     </p>
                     {citReps.length === 0 ? (
                       <p className="ml-3 text-[11px] text-slate-600">└ No replacements found yet.</p>
                     ) : (
-                      <div className="ml-3 mt-0.5 space-y-0.5">
-                        <span className="text-[10px] text-slate-500">└ Suggested: </span>
-                        {citReps.map((r, i) => (
-                          <span key={r._id}>
+                      <div className="ml-3 mt-1 space-y-1 min-w-0 max-w-full">
+                        <span className="text-[10px] text-slate-500 block">└ Suggested:</span>
+                        <div className="space-y-1 pl-2 min-w-0 max-w-full">
+                          {citReps.map((r) => (
                             <a
+                              key={r._id}
                               href={r.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-[11px] text-blue-400 hover:underline"
+                              className="block text-[11px] text-blue-400 hover:underline break-words [overflow-wrap:anywhere]"
                             >
                               {r.title}
                             </a>
-                            {i < citReps.length - 1 ? (
-                              <span className="text-slate-600">, </span>
-                            ) : null}
-                          </span>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -253,11 +251,11 @@ export function CitationFeed({
                         </span>
                       )}
                     </div>
-                    <p className="mt-1.5 text-sm font-medium leading-snug text-slate-100">
+                    <p className="mt-1.5 text-sm font-medium leading-snug text-slate-100 break-words [overflow-wrap:anywhere]">
                       {c?.title?.trim() ? c.title : "—"}
                     </p>
                     {st === "unverified" && (
-                      <p className="mt-1 text-[11px] text-slate-500">
+                      <p className="mt-1 text-[11px] text-slate-500 break-words [overflow-wrap:anywhere]">
                         Could not verify — no DOI found.{" "}
                         <a
                           href={`https://search.crossref.org/?q=${encodeURIComponent(c?.title ?? "")}`}
@@ -271,19 +269,19 @@ export function CitationFeed({
                       </p>
                     )}
                     {c?.status === "cascade" && c?.cascadeVia && (
-                      <p className="mt-1 text-xs text-orange-400">
+                      <p className="mt-1 text-xs text-orange-400 break-words [overflow-wrap:anywhere]">
                         ↳ Cites retracted: {c.cascadeVia}
                       </p>
                     )}
                     {st === "cascade-unknown" ? (
-                      <p className="mt-1 border-l-2 border-violet-600/40 pl-3 text-[11px] leading-snug text-violet-200/80">
+                      <p className="mt-1 border-l-2 border-violet-600/40 pl-3 text-[11px] leading-snug text-violet-200/80 break-words [overflow-wrap:anywhere]">
                         ↳ Cascade check inconclusive:{" "}
                         <span className="text-violet-100/90">
                           {(c?.cascadeVia ?? "").trim() || "—"}
                         </span>
                       </p>
                     ) : null}
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-slate-500 break-words [overflow-wrap:anywhere]">
                       {c?.authors?.trim() ? c.authors : "—"}
                       {c?.year != null ? ` · ${c.year}` : ""}
                     </p>
@@ -306,13 +304,13 @@ export function CitationFeed({
               </button>
               {selectedId === id &&
                 (st === "retracted" || st === "cascade") && (
-                  <div className="rounded-b-xl border border-t-0 border-blue-400/40 bg-slate-950/80 px-3 py-2">
+                  <div className="rounded-b-xl border border-t-0 border-blue-400/40 bg-slate-950/80 px-3 py-2 min-w-0 max-w-full">
                     {replacements === undefined ? (
                       <p className="text-xs text-slate-500">
                         Loading replacements…
                       </p>
                     ) : (
-                      <div className="mt-2 border-t border-slate-700 pt-2">
+                      <div className="mt-2 border-t border-slate-700 pt-2 min-w-0 max-w-full">
                         <p className="mb-1 text-xs text-slate-400">
                           🔍 Suggested Replacements · Powered by Exa AI
                         </p>
@@ -328,7 +326,7 @@ export function CitationFeed({
                               href={r.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="mb-1 block text-xs text-blue-400 hover:underline"
+                              className="mb-1 block text-xs text-blue-400 hover:underline break-words [overflow-wrap:anywhere]"
                             >
                               {r.title}
                             </a>
