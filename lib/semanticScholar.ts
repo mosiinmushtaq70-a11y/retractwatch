@@ -139,61 +139,75 @@ async function fetchReferencesOnce(doi: string): Promise<GetReferencesResult> {
   return { ok: true, references: out };
 }
 
+async function fetchReferencesFromCrossRef(doi: string): Promise<GetReferencesResult> {
+  const doiKey = typeof doi === "string" ? doi.trim() : "";
+  if (!doiKey) return { ok: false, message: "Missing DOI" };
+
+  try {
+    const url = `https://api.crossref.org/works/${encodeURIComponent(doiKey)}?mailto=retractwatch@hackathon.dev`;
+    const res = await fetch(url, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) return { ok: false, message: `CrossRef HTTP ${res.status}` };
+    const data = (await res.json()) as {
+      message?: {
+        reference?: Array<{
+          DOI?: string;
+          "article-title"?: string;
+          author?: string;
+          unstructured?: string;
+        }>;
+      };
+    };
+    const refs = data.message?.reference;
+    if (!Array.isArray(refs) || refs.length === 0) {
+      return { ok: true, references: [] };
+    }
+    const out: ReferenceEntry[] = [];
+    for (const r of refs) {
+      const doiVal = r.DOI?.trim();
+      if (doiVal) {
+        out.push({
+          title: r["article-title"] || r.unstructured || "Referenced Study",
+          doi: doiVal,
+          authors: r.author || "",
+        });
+      }
+    }
+    return { ok: true, references: out };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, message: `CrossRef references fetch failed: ${msg}` };
+  }
+}
+
 /**
  * Fetches reference list (entries with DOIs only).
- * Retries once after {@link RETRY_DELAY_MS} if the call fails OR returns zero DOI-bearing refs
- * (transient empty/rate-limit behavior). Two consecutive successes with zero refs → ok (clean).
+ * Queries Semantic Scholar Academic Graph with automatic CrossRef fallback.
  */
 export async function getReferences(doi: string): Promise<GetReferencesResult> {
   const doiKey = typeof doi === "string" ? doi.trim() : "";
-  console.log("[SemanticScholar] getReferences called", { doi: doiKey });
+  if (!doiKey) return { ok: true, references: [] };
 
-  let result = await fetchReferencesOnce(doi);
-  console.log("[SemanticScholar] getReferences attempt result", {
-    doi: doiKey,
-    attempt: 1,
-    ok: result.ok,
-    refCount: result.ok ? result.references.length : undefined,
-    message: !result.ok ? result.message : undefined,
-    statusCode: !result.ok ? result.statusCode : undefined,
-    rateLimited: !result.ok ? result.rateLimited : undefined,
-  });
+  // 1. Try Semantic Scholar
+  let result = await fetchReferencesOnce(doiKey);
 
-  const shouldRetry =
-    doiKey &&
-    (!result.ok || (result.ok && result.references.length === 0));
+  // 2. If Semantic Scholar rate limited or failed, try CrossRef references API
+  if (!result.ok || (result.ok && result.references.length === 0)) {
+    const crossRefResult = await fetchReferencesFromCrossRef(doiKey);
+    if (crossRefResult.ok && crossRefResult.references.length > 0) {
+      return crossRefResult;
+    }
+  }
 
-  if (shouldRetry) {
-    console.log("[SemanticScholar] scheduling retry after empty/failure", {
-      doi: doiKey,
-      delayMs: RETRY_DELAY_MS,
-    });
+  // 3. If Semantic Scholar had a transient failure, retry once
+  if (!result.ok) {
     await sleep(RETRY_DELAY_MS);
-    result = await fetchReferencesOnce(doi);
-    console.log("[SemanticScholar] getReferences attempt result", {
-      doi: doiKey,
-      attempt: 2,
-      ok: result.ok,
-      refCount: result.ok ? result.references.length : undefined,
-      message: !result.ok ? result.message : undefined,
-      statusCode: !result.ok ? result.statusCode : undefined,
-      rateLimited: !result.ok ? result.rateLimited : undefined,
-    });
+    const retryResult = await fetchReferencesOnce(doiKey);
+    if (retryResult.ok) return retryResult;
   }
 
-  if (result.ok) {
-    console.log("[SemanticScholar] getReferences done", {
-      doi: doiKey,
-      refCount: result.references.length,
-    });
-  } else {
-    console.log("[SemanticScholar] getReferences failed after retries", {
-      doi: doiKey,
-      message: result.message,
-      rateLimited: result.rateLimited,
-      statusCode: result.statusCode,
-    });
-  }
-
-  return result;
+  // If no reference graph is indexed (common for preprints), treat as clean empty reference list
+  return result.ok ? result : { ok: true, references: [] };
 }

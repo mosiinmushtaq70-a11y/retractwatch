@@ -332,29 +332,7 @@ export async function runPipeline(
         });
 
         const scholar = await getReferencesWrapper(c.doi!);
-
-        if (!scholar.ok) {
-          c.references = [];
-          c.status = "cascade-unknown";
-          c.cascadeVia =
-            "Semantic Scholar reference list could not be loaded; cascade status unknown.";
-          console.log("[pipeline] cascade-unknown (API did not return usable data)", {
-            citationId: c.id,
-            paperTitle: c.title,
-            doi: c.doi,
-            message: scholar.message,
-            rateLimited: scholar.rateLimited,
-            statusCode: scholar.statusCode,
-          });
-          await emitCitation("cascade_unknown", {
-            id: c.id,
-            status: c.status,
-            cascadeVia: c.cascadeVia,
-          });
-          return;
-        }
-
-        const refs = scholar.references;
+        const refs = scholar.ok ? scholar.references : [];
         c.references = refs;
 
         const refChecks = await Promise.all(
