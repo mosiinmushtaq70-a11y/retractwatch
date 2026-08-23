@@ -11,7 +11,7 @@ import { calculateDownstreamRisk } from "./downstreamRisk";
 import { compareToHistoricalCases } from "./historicalCases";
 import { extractDoiFromText, cleanTitleForCrossRef } from "./doiUtils";
 import { findReplacementPapers } from "./exa";
-import { isRetracted } from "./retractionWatch";
+import { isRetracted, isRetractedByTitle, getAuthorRetractionCount } from "./retractionWatch";
 import {
   calculateIntegrityScore as scoreFromScoringTable,
   type Citation as ScoringCitation,
@@ -68,6 +68,26 @@ export async function isRetractedWrapper(
     return isRetracted(doi);
   } catch {
     return null;
+  }
+}
+
+export async function isRetractedByTitleWrapper(
+  title: string,
+): Promise<RetractionRecord | null> {
+  try {
+    return isRetractedByTitle(title);
+  } catch {
+    return null;
+  }
+}
+
+export async function getAuthorRetractionCountWrapper(
+  authors?: string,
+): Promise<number> {
+  try {
+    return getAuthorRetractionCount(authors);
+  } catch {
+    return 0;
   }
 }
 
@@ -278,18 +298,28 @@ export async function runPipeline(
 
     // Phase 2 — Retraction Watch (parallel; CSV is in-memory after first load)
     await emitJob({ phase: 2, name: "retraction_check" });
-    const phase2Targets = citations.filter(
-      (c) => c.status !== "unverified" && Boolean(c.doi?.trim()),
-    );
+    const phase2Targets = citations; // Check all citations for titles/authors
     await mapPool(phase2Targets, POOL_RETRACTION, async (c) => {
       try {
+        const prevStatus = c.status;
         c.status = "checking";
         await emitCitation("retraction_check_started", {
           id: c.id,
           status: c.status,
         });
 
-        const info = await isRetractedWrapper(c.doi!);
+        let info: RetractionRecord | null = null;
+        if (c.doi?.trim()) {
+          info = await isRetractedWrapper(c.doi!);
+        }
+        if (!info && c.title) {
+          info = await isRetractedByTitleWrapper(c.title);
+        }
+
+        const authorRetractions = await getAuthorRetractionCountWrapper(c.authors);
+        if (authorRetractions > 0) {
+          c.authorWarning = `Author has a history of ${authorRetractions} retraction(s).`;
+        }
 
         if (info) {
           c.retraction = info;
@@ -298,13 +328,15 @@ export async function runPipeline(
             id: c.id,
             retraction: info,
             status: c.status,
+            authorWarning: c.authorWarning,
           });
         } else {
           c.retraction = null;
-          c.status = "clean";
+          c.status = prevStatus === "unverified" ? "unverified" : "clean";
           await emitCitation("not_retracted", {
             id: c.id,
             status: c.status,
+            authorWarning: c.authorWarning,
           });
         }
       } catch {

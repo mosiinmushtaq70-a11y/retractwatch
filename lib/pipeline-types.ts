@@ -42,6 +42,8 @@ export type PipelineCitation = {
   replacements?: ReplacementRow[];
   /** Set when status is cascade or cascade-unknown (upstream / API explanation). */
   cascadeVia?: string;
+  /** Warning message if the author has a known history of retractions */
+  authorWarning?: string;
 };
 
 export type PipelineUpdateFns = {
