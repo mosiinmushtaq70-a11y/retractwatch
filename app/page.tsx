@@ -326,8 +326,8 @@ export default function HomePage() {
           >
             Analyze bibliography
           </button>
-
-        </main>
+        </section>
+      </main>
 
         <footer className="absolute bottom-0 left-0 right-0 border-t border-white/5 py-4 text-center text-xs text-slate-600">
           RetractWatch V2 · Talos
