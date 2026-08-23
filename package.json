@@ -12,8 +12,9 @@
     "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
-    "convex": "^1.17.4",
+    "convex": "^1.45.0",
     "exa-js": "^2.10.2",
+    "jwt-decode": "^4.0.0",
     "next": "^16.2.1",
     "openai": "^4.77.0",
     "papaparse": "^5.5.2",

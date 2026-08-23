@@ -238,7 +238,6 @@ export default function HomePage() {
             </p>
 
             <section className="mt-6">
->>>>>>> 747d616 (fix: exclude CSV from build bundle)
           <div
             role="button"
             tabIndex={0}
