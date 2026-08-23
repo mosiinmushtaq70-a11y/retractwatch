@@ -13,28 +13,30 @@ export async function resolveDoiFromTitle(
   authors?: string,
 ): Promise<ResolveDoiFromTitleResult> {
   try {
-    await sleep(50);
-  } catch {
-    /* continue */
-  }
-
-  try {
     if (typeof title !== "string" || !title.trim()) return null;
 
-    const q = encodeURIComponent(title.trim());
-    let url = `https://api.crossref.org/works?query.title=${q}&rows=5&mailto=${encodeURIComponent(MAILTO)}`;
-    if (typeof authors === "string" && authors.trim()) {
+    const cleanQuery = title
+      .replace(/^\[\d+\]\s*/, "")
+      .replace(/^\d+\.\s*/, "")
+      .trim();
+
+    if (cleanQuery.length < 5) return null;
+
+    const q = encodeURIComponent(cleanQuery);
+    // Use query.bibliographic for academic references with author/journal/year
+    let url = `https://api.crossref.org/works?query.bibliographic=${q}&rows=3&mailto=${encodeURIComponent(MAILTO)}`;
+    if (typeof authors === "string" && authors.trim() && authors.toLowerCase() !== "unknown") {
       url += `&query.author=${encodeURIComponent(authors.trim())}`;
     }
 
     const res = await fetch(url, {
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return null;
 
     let data: {
-      message?: { items?: Array<{ score?: number; DOI?: string }> };
+      message?: { items?: Array<{ score?: number; DOI?: string; title?: string[] }> };
     };
     try {
       data = (await res.json()) as typeof data;
@@ -47,7 +49,8 @@ export async function resolveDoiFromTitle(
 
     const top = items[0];
     const score = top.score ?? 0;
-    if (score < 50) return null;
+    // CrossRef typical relevance scores range from 15 to 45
+    if (score < 8) return null;
     const doi = top.DOI;
     if (!doi || typeof doi !== "string") return null;
     return doi.trim();

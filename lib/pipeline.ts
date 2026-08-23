@@ -40,11 +40,11 @@ export type {
 /** @deprecated Use RetractionRecord */
 export type RetractionInfo = RetractionRecord;
 
-/** CrossRef + Semantic Scholar — stay under typical rate limits. */
-const POOL_DOI_RESOLVE = 6;
-const POOL_RETRACTION = 14;
-const POOL_CASCADE_FETCH = 4;
-const POOL_REPLACEMENTS = 4;
+/** CrossRef + Semantic Scholar — high-throughput concurrent pools. */
+const POOL_DOI_RESOLVE = 12;
+const POOL_RETRACTION = 20;
+const POOL_CASCADE_FETCH = 8;
+const POOL_REPLACEMENTS = 6;
 
 // -----------------------------------------------------------------------------
 // External adapters (try/catch per call; safe fallbacks)
