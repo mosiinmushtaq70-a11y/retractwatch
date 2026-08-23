@@ -3,30 +3,50 @@
 import { useState } from "react";
 
 export function IntegrityGuideInfoBox() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-[var(--rw-card)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-md transition">
-      <div className="flex items-center justify-between">
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-[var(--rw-card)] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-md transition">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
+        className="flex cursor-pointer items-center justify-between gap-3 select-none"
+      >
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-sm font-semibold text-blue-400">
             ℹ️
           </div>
           <div>
-            <h3 className="text-sm font-semibold tracking-tight text-white">
+            <h3 className="text-sm font-semibold tracking-tight text-white flex items-center gap-2">
               Understanding Integrity Statuses & Downstream Risk
+              <span className="rounded bg-blue-500/15 border border-blue-500/30 px-1.5 py-0.5 text-[10px] font-medium text-blue-300">
+                Guide
+              </span>
             </h3>
             <p className="text-xs text-slate-400">
-              How RetractWatch classifies citations and citation propagation in your bibliography
+              How RetractWatch classifies citations, cascade contamination, and downstream exposure
             </p>
           </div>
         </div>
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
+          className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
         >
-          {isOpen ? "Collapse guide" : "Expand guide"}
+          <span>{isOpen ? "Collapse guide" : "Expand guide"}</span>
+          <span className="text-[10px] transition-transform duration-200" style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}>
+            ▼
+          </span>
         </button>
       </div>
 
