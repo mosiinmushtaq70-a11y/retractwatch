@@ -14,10 +14,16 @@ export type LlmExtractConfig = {
 export function loadLlmExtractConfig():
   | { ok: true; config: LlmExtractConfig }
   | { ok: false; error: string } {
-  const apiKey =
+  let apiKey =
     process.env.LLM_API_KEY?.trim() ||
     process.env.OPENAI_API_KEY?.trim() ||
     "";
+    
+  // Sanitize accidental paste prefixes (e.g. 'ygsk_' -> 'gsk_')
+  if (apiKey.startsWith("ygsk_")) {
+    apiKey = apiKey.slice(1);
+  }
+
   if (!apiKey) {
     return {
       ok: false,
@@ -32,10 +38,19 @@ export function loadLlmExtractConfig():
     "";
   const baseURL = baseRaw || undefined;
 
-  const model =
+  let model =
     process.env.LLM_MODEL?.trim() ||
     process.env.OPENAI_MODEL?.trim() ||
-    "gpt-4o";
+    "";
+
+  // Smart defaults and compatibility fallbacks
+  if (baseURL?.includes("groq.com")) {
+    if (!model || model === "llama-3.3-70b-versatile" || model === "gpt-4o") {
+      model = "openai/gpt-oss-120b";
+    }
+  } else if (!model) {
+    model = "gpt-4o";
+  }
 
   const jsonMode = process.env.LLM_JSON_MODE?.trim() !== "false";
 

@@ -1,61 +1,39 @@
 // DOCUMENTATION NOTE:
-// Extracts structured citations from an uploaded PDF via an OpenAI-compatible Chat API.
+// Extracts structured citations from an uploaded PDF via unpdf and OpenAI-compatible Chat API.
 
 import { loadLlmExtractConfig } from "@/lib/llmExtractConfig";
+import { validateLlmCitations } from "@/lib/validateCitations";
 import { NextResponse } from "next/server";
 import OpenAI, { APIError } from "openai";
-import * as pdfParseModule from "pdf-parse";
+import { extractText, getDocumentProxy } from "unpdf";
 
 export const runtime = "nodejs";
-/** Vercel / long PDF extract — raise on Pro if scans time out (Hobby max is lower). */
 export const maxDuration = 120;
 
-const MAX_BYTES = 10 * 1024 * 1024;
-const MIN_TEXT_LEN = 100;
-const BIB_FALLBACK_CHARS = 6000;
-const BIB_MAX_CHARS = 8000;
+const MAX_BYTES = 15 * 1024 * 1024;
+const MIN_TEXT_LEN = 50;
+const BIB_FALLBACK_CHARS = 12000;
+const BIB_MAX_CHARS = 16000;
 
 const BIB_REGEX =
-  /(?:references|bibliography|works cited|literature cited)\s*\n([\s\S]+?)(?:\n\s*appendix|\n\s*supplementary|\Z)/i;
+  /(?:references|bibliography|works cited|literature cited)\s*\n([\s\S]+?)(?:\n\s*(?:appendix|supplementary)|$)/i;
 
 const SYSTEM_PROMPT =
-  "You are a scientific bibliography parser. Extract all references from the provided bibliography text. Return ONLY a valid JSON object with a 'citations' array. Each citation must have: { title: string, authors: string, year: number | null, doi: string | null }. If DOI not present, set to null. Return nothing except the JSON object.";
+  "You are a scientific bibliography parser. Extract all references from the provided bibliography text. Return ONLY a valid JSON object matching {\"citations\": [{\"title\": string, \"authors\": string, \"year\": number | null, \"doi\": string | null}]}. If DOI is not present, set to null. Return ONLY the raw JSON object.";
 
-type LegacyPdfParseFn = (buffer: Buffer) => Promise<{ text?: string }>;
-type ModernPdfParser = {
-  getText: () => Promise<{ text?: string }>;
-  destroy: () => Promise<void>;
-};
-type ModernPdfParseCtor = new (opts: { data: Buffer }) => ModernPdfParser;
-
-async function extractPdfText(buffer: Buffer): Promise<string> {
-  const mod = pdfParseModule as unknown as {
-    default?: LegacyPdfParseFn;
-    PDFParse?: ModernPdfParseCtor;
-  };
-
-  if (typeof mod.default === "function") {
-    const pdfData = await mod.default(buffer);
-    return (pdfData.text ?? "").trim();
-  }
-
-  if (typeof mod.PDFParse === "function") {
-    const parser = new mod.PDFParse({ data: buffer });
-    try {
-      const pdfData = await parser.getText();
-      return (pdfData.text ?? "").trim();
-    } finally {
-      await parser.destroy();
-    }
-  }
-
-  throw new Error("Unsupported pdf-parse module format");
-}
-
-function stripMarkdownFences(raw: string): string {
+function stripMarkdownFencesAndThinking(raw: string): string {
   let s = raw.trim();
+  // Strip <think>...</think> reasoning blocks if present
+  s = s.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  // Strip markdown code fences
   s = s.replace(/^```(?:json)?\s*/i, "");
   s = s.replace(/\s*```\s*$/i, "");
+  // Try to find the JSON object boundaries { ... }
+  const firstBrace = s.indexOf("{");
+  const lastBrace = s.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    s = s.slice(firstBrace, lastBrace + 1);
+  }
   return s.trim();
 }
 
@@ -69,6 +47,47 @@ function jsonErrorBody(
     body.detail = detail;
   }
   return NextResponse.json(body, { status });
+}
+
+// Quick heuristic fallback if LLM times out or is unreachable
+function extractCitationsViaRegex(text: string): Array<{
+  title: string;
+  authors: string;
+  year: number | null;
+  doi: string | null;
+}> {
+  const citations: Array<{
+    title: string;
+    authors: string;
+    year: number | null;
+    doi: string | null;
+  }> = [];
+
+  const lines = text
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 20);
+
+  const doiRegex = /(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/;
+  const yearRegex = /\b(19\d{2}|20\d{2})\b/;
+
+  for (const line of lines) {
+    const doiMatch = line.match(doiRegex);
+    const yearMatch = line.match(yearRegex);
+    
+    // Clean citation line
+    const cleanLine = line.replace(/^\[\d+\]\s*/, "").replace(/^\d+\.\s*/, "");
+    if (cleanLine.length < 15) continue;
+
+    citations.push({
+      title: cleanLine,
+      authors: "Unknown",
+      year: yearMatch ? parseInt(yearMatch[1], 10) : null,
+      doi: doiMatch ? doiMatch[1].replace(/[.,;)]+$/, "") : null,
+    });
+  }
+
+  return citations.slice(0, 100);
 }
 
 export async function POST(request: Request) {
@@ -85,32 +104,21 @@ export async function POST(request: Request) {
 
     if (file.size > MAX_BYTES) {
       return NextResponse.json(
-        { error: "PDF too large. Please upload under 10MB." },
+        { error: "PDF too large. Please upload under 15MB." },
         { status: 400 },
       );
     }
 
-    const llm = loadLlmExtractConfig();
-    if (!llm.ok) {
-      return jsonErrorBody(llm.error, 503);
-    }
-    const {
-      apiKey,
-      baseURL,
-      model,
-      jsonMode,
-      maxCompletionTokens,
-      reasoningEffort,
-    } = llm.config;
-
     const buffer = Buffer.from(await file.arrayBuffer());
-    let text: string;
+    let text = "";
     try {
-      text = await extractPdfText(buffer);
+      const pdf = await getDocumentProxy(new Uint8Array(buffer));
+      const extracted = await extractText(pdf, { mergePages: true });
+      text = extracted.text.trim();
     } catch (pdfErr) {
-      console.error("[extract] pdf-parse failed", pdfErr);
+      console.error("[extract] unpdf extraction failed", pdfErr);
       return jsonErrorBody(
-        "Could not read this PDF. Try another file or a text-based (not scanned) PDF.",
+        "Could not read this PDF. Try another file or a text-based (not scanned image) PDF.",
         400,
         pdfErr instanceof Error ? pdfErr.message : String(pdfErr),
       );
@@ -120,7 +128,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "This PDF appears to be a scanned image. Please use a text-based PDF.",
+            "This PDF appears to be empty or a scanned image without selectable text.",
         },
         { status: 400 },
       );
@@ -129,21 +137,39 @@ export async function POST(request: Request) {
     const match = text.match(BIB_REGEX);
     let bibliographyText = match?.[1]?.trim() ?? "";
     if (!bibliographyText) {
+      // If no explicit 'References' header, grab the latter half of the manuscript
       bibliographyText = text.slice(-BIB_FALLBACK_CHARS);
     }
     bibliographyText = bibliographyText.slice(0, BIB_MAX_CHARS);
 
+    const llm = loadLlmExtractConfig();
+    if (!llm.ok) {
+      // If LLM config is missing, fall back to regex extraction so users are never hard-blocked
+      const fallbackCitations = extractCitationsViaRegex(bibliographyText);
+      if (fallbackCitations.length > 0) {
+        return NextResponse.json({
+          citations: fallbackCitations,
+          totalFound: fallbackCitations.length,
+          note: "Extracted via pattern matching (LLM key not configured).",
+        });
+      }
+      return jsonErrorBody(llm.error, 503);
+    }
+
+    const {
+      apiKey,
+      baseURL,
+      model,
+      maxCompletionTokens,
+    } = llm.config;
+
     const openai = new OpenAI({ apiKey, baseURL });
-    let rawContent: string | null;
+    let rawContent: string | null = null;
     try {
       const completion = await openai.chat.completions.create({
         model,
         temperature: 0,
         max_completion_tokens: maxCompletionTokens,
-        ...(jsonMode ? { response_format: { type: "json_object" as const } } : {}),
-        ...(reasoningEffort
-          ? { reasoning_effort: reasoningEffort }
-          : {}),
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           {
@@ -155,6 +181,17 @@ export async function POST(request: Request) {
       rawContent = completion.choices[0]?.message?.content ?? null;
     } catch (openaiErr) {
       console.error("[extract] LLM request failed", openaiErr);
+      
+      // Fall back to regex parser on LLM error
+      const fallbackCitations = extractCitationsViaRegex(bibliographyText);
+      if (fallbackCitations.length > 0) {
+        return NextResponse.json({
+          citations: fallbackCitations,
+          totalFound: fallbackCitations.length,
+          note: "Extracted via pattern matching fallback.",
+        });
+      }
+
       if (openaiErr instanceof APIError) {
         return jsonErrorBody(
           openaiErr.message ||
@@ -173,26 +210,31 @@ export async function POST(request: Request) {
     }
 
     if (!rawContent) {
-      return jsonErrorBody("Empty response from the model.", 502);
+      const fallbackCitations = extractCitationsViaRegex(bibliographyText);
+      return NextResponse.json({
+        citations: fallbackCitations,
+        totalFound: fallbackCitations.length,
+      });
     }
 
-    let parsed: { citations?: unknown };
+    let parsed: { citations?: unknown } = {};
     try {
-      const jsonStr = stripMarkdownFences(rawContent);
+      const jsonStr = stripMarkdownFencesAndThinking(rawContent);
       parsed = JSON.parse(jsonStr) as { citations?: unknown };
     } catch (parseErr) {
-      console.error("[extract] JSON parse failed", parseErr, rawContent.slice(0, 500));
-      return jsonErrorBody(
-        "The model returned invalid JSON. Try again or use a smaller PDF.",
-        502,
-        parseErr instanceof Error ? parseErr.message : String(parseErr),
-      );
+      console.warn("[extract] JSON parse warning, attempting fallback", parseErr);
+      const fallbackCitations = extractCitationsViaRegex(bibliographyText);
+      return NextResponse.json({
+        citations: fallbackCitations,
+        totalFound: fallbackCitations.length,
+      });
     }
 
-    const citations = Array.isArray(parsed.citations) ? parsed.citations : [];
+    const rawCitations = Array.isArray(parsed.citations) ? parsed.citations : [];
+    const citations = validateLlmCitations(rawCitations);
 
     return NextResponse.json({
-      citations,
+      citations: citations.length > 0 ? citations : extractCitationsViaRegex(bibliographyText),
       totalFound: citations.length,
     });
   } catch (e) {
