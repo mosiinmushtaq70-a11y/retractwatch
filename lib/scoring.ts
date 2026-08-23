@@ -123,46 +123,4 @@ export function calculateIntegrityScore(citations: Citation[]): IntegrityScore {
   }
 }
 
-export interface ScoreLabel {
-  label: string;
-  color: string;
-  description: string;
-}
-
-export function getScoreLabel(score: number): ScoreLabel {
-  try {
-    const s = typeof score === "number" && !Number.isNaN(score) ? score : 0;
-    if (s >= 90) {
-      return {
-        label: "CLEAN",
-        color: "#22c55e",
-        description: "No serious integrity flags detected in checked citations.",
-      };
-    }
-    if (s >= 70) {
-      return {
-        label: "REVIEW RECOMMENDED",
-        color: "#f59e0b",
-        description: "Some citations need a closer look before you rely on this bibliography.",
-      };
-    }
-    if (s >= 50) {
-      return {
-        label: "SIGNIFICANT RISK",
-        color: "#ef4444",
-        description: "Multiple integrity concerns; verify sources before publication or policy use.",
-      };
-    }
-    return {
-      label: "CRITICAL",
-      color: "#7f1d1d",
-      description: "Severe integrity risk—retraction or cascade issues dominate this reference list.",
-    };
-  } catch {
-    return {
-      label: "CLEAN",
-      color: "#22c55e",
-      description: "No serious integrity flags detected in checked citations.",
-    };
-  }
-}
+export { getScoreLabel, type ScoreLabel } from "./scoreBands";
