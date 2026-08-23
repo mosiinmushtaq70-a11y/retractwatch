@@ -41,7 +41,7 @@ export type {
 export type RetractionInfo = RetractionRecord;
 
 /** CrossRef + Semantic Scholar — high-throughput concurrent pools. */
-const POOL_DOI_RESOLVE = 12;
+const POOL_DOI_RESOLVE = 3;
 const POOL_RETRACTION = 20;
 const POOL_CASCADE_FETCH = 8;
 const POOL_REPLACEMENTS = 6;
