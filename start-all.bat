@@ -1,6 +1,6 @@
 @echo off
 REM Launches two terminals: Convex backend, then Next.js frontend.
-REM Place this file in Talos\web (same folder as package.json).
+REM Place this file in the project root (same folder as package.json).
 REM Change the port below if you do not use 3011.
 
 set "WEB_ROOT=%~dp0"

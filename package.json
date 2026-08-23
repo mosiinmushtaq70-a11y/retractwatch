@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "convex": "convex dev",
-    "convex:codegen": "convex codegen"
+    "convex:codegen": "convex codegen",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "convex": "^1.17.4",
