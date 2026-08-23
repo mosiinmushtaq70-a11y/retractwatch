@@ -56,8 +56,8 @@ export function loadLlmExtractConfig():
 
   const maxRaw = process.env.LLM_MAX_COMPLETION_TOKENS?.trim();
   const maxCompletionTokens = maxRaw
-    ? Math.min(32768, Math.max(256, Number(maxRaw) || 8192))
-    : 8192;
+    ? Math.min(32768, Math.max(256, Number(maxRaw) || 4000))
+    : 4000;
 
   const re = process.env.LLM_REASONING_EFFORT?.trim().toLowerCase();
   const reasoningEffort =

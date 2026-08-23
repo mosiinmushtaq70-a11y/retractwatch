@@ -63,7 +63,11 @@ function extractCitationsViaRegex(text: string): Array<{
     doi: string | null;
   }> = [];
 
-  const lines = text
+  // Merge lines that don't start with a number or bracketed number
+  // PDF extractors often break a single citation across multiple lines
+  const mergedText = text.replace(/\n(?!\s*(?:\[\d+\]|\d+\.))/g, " ");
+
+  const lines = mergedText
     .split(/\n+/)
     .map((l) => l.trim())
     .filter((l) => l.length > 20);
