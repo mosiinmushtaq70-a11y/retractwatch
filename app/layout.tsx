@@ -17,6 +17,7 @@ export default function RootLayout({
     <html
       lang="en"
       className="dark"
+      suppressHydrationWarning
       style={
         {
           // Keep CSS variable contract without next/font network fetches.
