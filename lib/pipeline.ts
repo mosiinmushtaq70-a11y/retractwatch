@@ -6,7 +6,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { mapPool } from "./asyncPool";
-import { resolveDoiFromTitle } from "./crossref";
+import { resolveDoiFromTitle, checkCrossrefRetraction } from "./crossref";
 import { calculateDownstreamRisk } from "./downstreamRisk";
 import { compareToHistoricalCases } from "./historicalCases";
 import { extractDoiFromText, cleanTitleForCrossRef } from "./doiUtils";
@@ -88,6 +88,16 @@ export async function getAuthorRetractionCountWrapper(
     return getAuthorRetractionCount(authors);
   } catch {
     return 0;
+  }
+}
+
+export async function checkCrossrefRetractionWrapper(
+  doi: string,
+): Promise<boolean> {
+  try {
+    return await checkCrossrefRetraction(doi);
+  } catch {
+    return false;
   }
 }
 
@@ -311,6 +321,17 @@ export async function runPipeline(
         let info: RetractionRecord | null = null;
         if (c.doi?.trim()) {
           info = await isRetractedWrapper(c.doi!);
+          if (!info) {
+             const isCrossrefRetracted = await checkCrossrefRetractionWrapper(c.doi!);
+             if (isCrossrefRetracted) {
+                 info = {
+                    retractionReason: "Retracted (via CrossRef Metadata)",
+                    retractionDate: "Unknown",
+                    retractionCountry: "Unknown",
+                    retractionJournal: "Unknown",
+                 };
+             }
+          }
         }
         if (!info && c.title) {
           info = await isRetractedByTitleWrapper(c.title);

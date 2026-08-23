@@ -58,3 +58,42 @@ export async function resolveDoiFromTitle(
     return null;
   }
 }
+
+/**
+ * Checks if a DOI has a formal CrossRef retraction notice via the `update-to` field.
+ */
+export async function checkCrossrefRetraction(doi: string): Promise<boolean> {
+  try {
+    if (!doi || typeof doi !== "string") return false;
+    const url = `https://api.crossref.org/works/${encodeURIComponent(doi)}?mailto=${encodeURIComponent(MAILTO)}`;
+    const res = await fetch(url, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return false;
+
+    let data: {
+      message?: { "update-to"?: Array<{ type?: string; label?: string }> };
+    };
+    try {
+      data = (await res.json()) as typeof data;
+    } catch {
+      return false;
+    }
+
+    const updates = data.message?.["update-to"];
+    if (!Array.isArray(updates)) return false;
+
+    for (const update of updates) {
+      if (
+        update.type === "retraction" ||
+        update.label?.toLowerCase().includes("retract")
+      ) {
+        return true;
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
