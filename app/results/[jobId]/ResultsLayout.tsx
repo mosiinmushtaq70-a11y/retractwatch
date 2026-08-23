@@ -7,7 +7,9 @@ import { IntegrityScore } from "@/components/IntegrityScore";
 import { DownstreamRisk } from "@/components/DownstreamRisk";
 import { CitationFeed } from "@/components/CitationFeed";
 import { CascadeGraph } from "@/components/CascadeGraph";
+import { IntegrityGuideInfoBox } from "@/components/IntegrityGuideInfoBox";
 import { ReportDownload } from "@/components/ReportDownload";
+
 import type { CitationRow } from "@/lib/citationRow";
 import type { JobViewModel } from "@/lib/jobViewModel";
 
@@ -121,6 +123,10 @@ export function ResultsLayout({
             )}
 
             <div className="mt-6">
+              <IntegrityGuideInfoBox />
+            </div>
+
+            <div className="mt-4">
               {citationsLoading ? (
                 <div className="rounded-2xl border border-white/10 bg-slate-900/30 px-5 py-4 text-sm text-slate-500">
                   Export report unlocks after citations load.
