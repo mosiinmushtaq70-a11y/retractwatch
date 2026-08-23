@@ -86,7 +86,7 @@ export function ResultsLayout({
         {!loading && !notFound ? (
           <>
             <div className="grid gap-4 lg:grid-cols-2">
-              <IntegrityScore score={score} status={status} />
+              <IntegrityScore score={score} status={status} citations={citations} />
               <DownstreamRisk risk={job?.downstreamRisk ?? undefined} />
             </div>
 
