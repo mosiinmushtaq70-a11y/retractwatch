@@ -96,6 +96,7 @@ export function calculateIntegrityScore(citations: Citation[]): IntegrityScore {
     let retractedPenalty = 0;
     let cascadeCount = 0;
     let retractedCount = 0;
+    let unverifiedCount = 0;
 
     for (const c of citations) {
       if (!c || typeof c !== "object") continue;
@@ -107,13 +108,19 @@ export function calculateIntegrityScore(citations: Citation[]): IntegrityScore {
         retractedPenalty += (1 / total) * RETRACTED_WEIGHT * sev * rec;
       } else if (c.status === "cascade" || c.status === "cascade-unknown") {
         cascadeCount += 1;
+      } else if (c.status === "unverified") {
+        unverifiedCount += 1;
       }
     }
 
     const cascadeRatio = cascadeCount / total;
     const cascadePenalty = cascadeRatio * CASCADE_WEIGHT;
 
-    let score = 100 - retractedPenalty - cascadePenalty;
+    const unverifiedRatio = unverifiedCount / total;
+    // Max penalty of 10 points for unverified citations, scales up to 10 points at 50% unverified
+    const unverifiedPenalty = Math.min(10, unverifiedRatio * 20);
+
+    let score = 100 - retractedPenalty - cascadePenalty - unverifiedPenalty;
     score = applyRetractionCountCaps(score, retractedCount);
     score = Math.max(0, Math.min(100, score));
 
