@@ -203,17 +203,6 @@ export default function HomePage() {
             via Semantic Scholar, and stream progress live from Convex.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-500">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              Retraction Watch CSV
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              Cascade visualization
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              Live Convex updates
-            </span>
-          </div>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
               {[
