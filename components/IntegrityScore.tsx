@@ -28,8 +28,10 @@ function IntegrityScoreInner({ score, status, citations }: Props) {
   const retractedCount = citations?.filter((c) => c.status === "retracted").length ?? 0;
   const cascadeCount =
     citations?.filter((c) => c.status === "cascade" || c.status === "cascade-unknown").length ?? 0;
-  const flaggedCount = retractedCount + cascadeCount;
-  const cleanCount = total > 0 ? Math.max(0, total - flaggedCount) : 0;
+  const unverifiedCount =
+    citations?.filter((c) => c.status === "unverified" || (!c.doi && c.status !== "retracted" && c.status !== "cascade" && c.status !== "cascade-unknown")).length ?? 0;
+  const cleanCount =
+    citations?.filter((c) => c.status === "clean" || (c.doi && c.status !== "retracted" && c.status !== "cascade" && c.status !== "cascade-unknown" && c.status !== "unverified")).length ?? 0;
 
   const targetClean = total > 0 ? cleanCount : s;
   const isLoading = st !== "complete" && score === undefined && total === 0;
@@ -124,59 +126,82 @@ function IntegrityScoreInner({ score, status, citations }: Props) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[var(--rw-card)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-md">
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[var(--rw-card)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-md flex flex-col justify-between">
       <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-500/20 blur-2xl rw-glow-pulse" />
-      <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-        Clean Verified Citations
-      </p>
-      <div className="mt-4 flex items-center gap-6">
-        <div className="relative h-[120px] w-[120px] shrink-0">
-          <svg className="-rotate-90" viewBox="0 0 120 120" aria-hidden>
-            <circle
-              cx="60"
-              cy="60"
-              r={r}
-              fill="none"
-              stroke="rgba(148,163,184,0.15)"
-              strokeWidth="10"
-            />
-            <circle
-              cx="60"
-              cy="60"
-              r={r}
-              fill="none"
-              stroke={statusColor}
-              strokeWidth="10"
-              strokeLinecap="round"
-              strokeDasharray={c}
-              strokeDashoffset={offset}
-              className="transition-[stroke-dashoffset] duration-300"
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-[family-name:var(--font-instrument)] text-3xl font-bold text-white">
-              {displayClean}
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              {total > 0 ? `/ ${total} CLEAN` : "/ 100"}
-            </span>
+      <div>
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+          Clean Verified Citations
+        </p>
+        <div className="mt-4 flex items-center gap-6">
+          <div className="relative h-[120px] w-[120px] shrink-0">
+            <svg className="-rotate-90" viewBox="0 0 120 120" aria-hidden>
+              <circle
+                cx="60"
+                cy="60"
+                r={r}
+                fill="none"
+                stroke="rgba(148,163,184,0.15)"
+                strokeWidth="10"
+              />
+              <circle
+                cx="60"
+                cy="60"
+                r={r}
+                fill="none"
+                stroke={statusColor}
+                strokeWidth="10"
+                strokeLinecap="round"
+                strokeDasharray={c}
+                strokeDashoffset={offset}
+                className="transition-[stroke-dashoffset] duration-300"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="font-[family-name:var(--font-instrument)] text-3xl font-bold text-white">
+                {displayClean}
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                {total > 0 ? `/ ${total} CLEAN` : "/ 100"}
+              </span>
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p
+              className="text-lg font-semibold tracking-tight"
+              style={{ color: statusColor }}
+            >
+              {statusTitle}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-slate-400">
+              {statusDesc}
+            </p>
+            {st !== "complete" ? (
+              <p className="mt-2 text-xs text-blue-300/90">Analyzing…</p>
+            ) : null}
           </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <p
-            className="text-lg font-semibold tracking-tight"
-            style={{ color: statusColor }}
-          >
-            {statusTitle}
-          </p>
-          <p className="mt-1 text-sm leading-relaxed text-slate-400">
-            {statusDesc}
-          </p>
-          {st !== "complete" ? (
-            <p className="mt-2 text-xs text-blue-300/90">Analyzing…</p>
-          ) : null}
-        </div>
       </div>
+
+      {total > 0 && (
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-white/10">
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-center transition hover:bg-red-500/15">
+            <span className="block text-lg font-bold text-red-400">{retractedCount}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-red-300/80">🔴 Retracted</span>
+          </div>
+          <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-center transition hover:bg-amber-500/15">
+            <span className="block text-lg font-bold text-amber-400">{cascadeCount}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-amber-300/80">🟠 Cascade</span>
+          </div>
+          <div className="rounded-xl border border-slate-600/40 bg-slate-800/40 px-3 py-2 text-center transition hover:bg-slate-800/60">
+            <span className="block text-lg font-bold text-slate-200">{unverifiedCount}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">⚪ Unverified</span>
+          </div>
+          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-center transition hover:bg-emerald-500/15">
+            <span className="block text-lg font-bold text-emerald-400">{cleanCount}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider text-emerald-300/80">🟢 Clean</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
