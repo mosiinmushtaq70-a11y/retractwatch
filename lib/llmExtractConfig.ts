@@ -1,6 +1,5 @@
 /**
  * PDF/paste extract — OpenAI-compatible Chat Completions API.
- * Keep in sync with `Talos/lib/llmExtractConfig.ts` (monorepo sibling).
  */
 
 export type LlmExtractConfig = {

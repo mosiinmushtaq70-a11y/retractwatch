@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-function TalosLogo() {
+function RetractWatchLogo() {
   return (
     <span
       className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200/15 bg-gradient-to-br from-slate-900 via-blue-950/70 to-slate-900 shadow-[0_0_28px_rgba(37,99,235,0.22)] transition group-hover:border-blue-300/60"
@@ -50,7 +50,7 @@ export function SiteHeader() {
     <header className="relative z-20 border-b border-white/[0.06] bg-slate-950/40 backdrop-blur-sm">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-6 px-4 py-4 sm:px-6">
         <Link href="/" className="group flex min-w-0 items-center gap-3">
-          <TalosLogo />
+          <RetractWatchLogo />
           <div className="min-w-0 text-left">
             <p className="font-[family-name:var(--font-instrument)] text-lg tracking-tight text-white sm:text-xl">
               RetractWatch

@@ -357,7 +357,7 @@ export default function HomePage() {
       </main>
 
         <footer className="absolute bottom-0 left-0 right-0 border-t border-white/5 py-4 text-center text-xs text-slate-600">
-          RetractWatch V2 · Talos
+          RetractWatch V2
         </footer>
       </div>
     </>

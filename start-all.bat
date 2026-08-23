@@ -6,8 +6,8 @@ REM Change the port below if you do not use 3011.
 set "WEB_ROOT=%~dp0"
 set "NEXT_PORT=3011"
 
-start "Talos — Convex (backend)" /D "%WEB_ROOT%" cmd /k npm run convex
+start "RetractWatch — Convex (backend)" /D "%WEB_ROOT%" cmd /k npm run convex
 timeout /t 2 /nobreak >nul
-start "Talos — Next.js (frontend)" /D "%WEB_ROOT%" cmd /k npm run dev -- -p %NEXT_PORT%
+start "RetractWatch — Next.js (frontend)" /D "%WEB_ROOT%" cmd /k npm run dev -- -p %NEXT_PORT%
 
 echo Started Convex and Next.js in separate windows.

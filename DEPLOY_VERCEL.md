@@ -4,8 +4,7 @@ Follow these steps in order. No changes to `lib/`, `components/`, or `convex/` a
 
 ## 1. Vercel project (root directory + build)
 
-1. Import your Git repository in the [Vercel dashboard](https://vercel.com/new).
-2. If the repo root is the parent folder that **contains** `web/` (e.g. monorepo `Talos` with `web` inside), set **Root Directory** to **`web`** (not `Talos/web` — paths are relative to the repo root).
+2. If the repo root is the parent folder that contains the project, set **Root Directory** accordingly.
 3. Leave defaults unless you use a custom setup:
    - **Install Command:** `npm install`
    - **Build Command:** `npm run build`
