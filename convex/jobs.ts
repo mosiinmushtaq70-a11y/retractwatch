@@ -15,7 +15,7 @@ export const createJob = mutation({
     status: v.string(),
     totalCitations: v.number(),
     processedCount: v.number(),
-    integrityScore: v.optional(v.number()),
+    integritySummary: v.optional(v.any()),
     paperTitle: v.optional(v.string()),
     historicalComparison: v.optional(v.any()),
     downstreamRisk: v.optional(v.any()),
@@ -33,7 +33,7 @@ export const updateJob = mutation({
     status: v.optional(v.string()),
     totalCitations: v.optional(v.number()),
     processedCount: v.optional(v.number()),
-    integrityScore: v.optional(v.number()),
+    integritySummary: v.optional(v.any()),
     paperTitle: v.optional(v.string()),
     historicalComparison: v.optional(v.any()),
     downstreamRisk: v.optional(v.any()),
@@ -44,7 +44,7 @@ export const updateJob = mutation({
     if (rest.status !== undefined) patch.status = rest.status;
     if (rest.totalCitations !== undefined) patch.totalCitations = rest.totalCitations;
     if (rest.processedCount !== undefined) patch.processedCount = rest.processedCount;
-    if (rest.integrityScore !== undefined) patch.integrityScore = rest.integrityScore;
+    if (rest.integritySummary !== undefined) patch.integritySummary = rest.integritySummary;
     if (rest.paperTitle !== undefined) patch.paperTitle = rest.paperTitle;
     if (rest.historicalComparison !== undefined) {
       patch.historicalComparison = rest.historicalComparison;

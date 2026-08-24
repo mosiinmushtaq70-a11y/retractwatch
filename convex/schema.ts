@@ -7,7 +7,7 @@ export default defineSchema({
     status: v.string(),
     totalCitations: v.number(),
     processedCount: v.number(),
-    integrityScore: v.optional(v.number()),
+    integritySummary: v.optional(v.any()),
     paperTitle: v.optional(v.string()),
     historicalComparison: v.optional(v.any()),
     downstreamRisk: v.optional(v.any()),

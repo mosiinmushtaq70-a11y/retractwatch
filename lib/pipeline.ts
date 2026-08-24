@@ -13,8 +13,9 @@ import { extractDoiFromText, cleanTitleForCrossRef } from "./doiUtils";
 import { findReplacementPapers } from "./exa";
 import { isRetracted, isRetractedByTitle, getAuthorRetractionCount } from "./retractionWatch";
 import {
-  calculateIntegrityScore as scoreFromScoringTable,
+  generateIntegritySummary,
   type Citation as ScoringCitation,
+  type IntegritySummary,
 } from "./scoring";
 import {
   getReferences,
@@ -170,7 +171,7 @@ export async function runPipeline(
   jobId: string,
   citations: PipelineCitation[],
   fns: PipelineUpdateFns,
-): Promise<{ citations: PipelineCitation[]; integrityScore: number }> {
+): Promise<{ citations: PipelineCitation[]; integritySummary?: IntegritySummary }> {
   const { updateCitation, updateJob } = fns;
 
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.trim();
@@ -208,15 +209,16 @@ export async function runPipeline(
     processedCount: 0,
   });
 
-  let integrityScore = 100;
+  let finalSummary: IntegritySummary | undefined = undefined;
 
-  const commitFinalJob = async (): Promise<number> => {
+  const commitFinalJob = async (): Promise<IntegritySummary | undefined> => {
     await emitJob({ phase: 5, name: "score_calculation" });
-    let score = 100;
+    
+    let summary: IntegritySummary | undefined;
     try {
-      score = scoreFromScoringTable(pipelineToScoringCitations(citations));
+      summary = generateIntegritySummary(pipelineToScoringCitations(citations));
     } catch {
-      score = 0;
+      // Ignored
     }
 
     const scoringRows = pipelineToScoringCitations(citations);
@@ -229,14 +231,14 @@ export async function runPipeline(
         title: c.title,
         cascadeVia: c.cascadeVia,
       })),
-      score,
+      100, // Pass dummy score for historical logic backwards compatibility or refactor historicalCases later
     );
     const downstream = calculateDownstreamRisk(scoringRows);
     const histPayload = hist;
 
     await emitJob({
       phase: 5,
-      integrityScore: score,
+      integritySummary: summary,
       processedCount: citations.length,
       status: "complete",
       historicalComparison: histPayload,
@@ -250,14 +252,14 @@ export async function runPipeline(
 
     await emitJob({
       event: "pipeline_complete",
-      integrityScore: score,
+      integritySummary: summary,
       status: "complete",
       processedCount: citations.length,
       historicalComparison: histPayload,
       downstreamRisk: downstream,
     });
 
-    return score;
+    return summary;
   };
 
   try {
@@ -484,11 +486,11 @@ export async function runPipeline(
     console.error("[pipeline] fatal error mid-run — still finalizing job", fatal);
   } finally {
     try {
-      integrityScore = await commitFinalJob();
+      finalSummary = await commitFinalJob();
     } catch (finalizeErr) {
       console.error("[pipeline] commitFinalJob failed", finalizeErr);
     }
   }
 
-  return { citations, integrityScore };
+  return { citations, integritySummary: finalSummary };
 }

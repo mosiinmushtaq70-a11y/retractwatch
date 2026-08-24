@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
-import { IntegrityScore } from "@/components/IntegrityScore";
+import { IntegritySummary } from "@/components/IntegritySummary";
 import { DownstreamRisk } from "@/components/DownstreamRisk";
 import { CitationFeed } from "@/components/CitationFeed";
 import { CascadeGraph } from "@/components/CascadeGraph";
@@ -36,7 +36,7 @@ export function ResultsLayout({
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const status = job?.status ?? "";
-  const score = job?.integrityScore ?? undefined;
+  const summary = job?.integritySummary ?? undefined;
 
   return (
     <div className="relative min-h-dvh pb-16">
@@ -88,7 +88,7 @@ export function ResultsLayout({
         {!loading && !notFound ? (
           <>
             <div className="grid gap-4 lg:grid-cols-2">
-              <IntegrityScore score={score} status={status} citations={citations} />
+              <IntegritySummary summary={summary} status={status} />
               <DownstreamRisk risk={job?.downstreamRisk ?? undefined} />
             </div>
 

@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react";
 import type { CitationRow } from "@/lib/citationRow";
 import type { JobViewModel } from "@/lib/jobViewModel";
-import { getScoreLabel } from "@/lib/scoreBands";
+import type { IntegritySummary } from "@/lib/scoring";
 
 type Props = {
   job: JobViewModel | null | undefined;
@@ -20,8 +20,7 @@ function escapeHtml(s: string) {
 
 function buildReportHtml(
   list: CitationRow[],
-  score: number,
-  label: ReturnType<typeof getScoreLabel>,
+  summary?: IntegritySummary,
 ): string {
   const rows = list
     .map(
@@ -30,17 +29,29 @@ function buildReportHtml(
     )
     .join("");
 
+  const riskLabel = summary?.riskLevel.toUpperCase() ?? "UNKNOWN";
+  const adviceText = summary?.advice ?? "Report generated.";
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>RetractWatch Report</title>
       <style>
         body { font-family: system-ui, sans-serif; padding: 24px; color: #111; }
         h1 { font-size: 22px; }
         .meta { color: #444; font-size: 13px; margin-bottom: 24px; }
+        .summary-box { background: #f3f4f6; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #e5e7eb; }
+        .summary-box h3 { margin-top: 0; font-size: 16px; }
+        .summary-box p { margin: 0; font-size: 14px; color: #374151; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
         th { background: #f3f4f6; }
       </style></head><body>
       <h1>RetractWatch — Integrity report</h1>
-      <p class="meta">Score: <strong>${score}</strong> — ${escapeHtml(label.label)} · ${list.length} citations · Generated ${escapeHtml(new Date().toLocaleString())}</p>
+      <p class="meta">${list.length} citations · Generated ${escapeHtml(new Date().toLocaleString())}</p>
+      
+      <div class="summary-box">
+        <h3>Rejection Risk: ${escapeHtml(riskLabel)}</h3>
+        <p>${escapeHtml(adviceText)}</p>
+      </div>
+
       <table><thead><tr><th>Title</th><th>Status</th><th>DOI</th></tr></thead><tbody>${rows}</tbody></table>
       </body></html>`;
 }
@@ -106,12 +117,11 @@ function downloadReportHtml(html: string) {
 /** Print-friendly summary — iframe print + HTML download fallback. */
 export function ReportDownload({ job, citations }: Props) {
   const list = useMemo(() => citations ?? [], [citations]);
-  const score = job?.integrityScore ?? 0;
+  const summary = job?.integritySummary as IntegritySummary | undefined;
 
   const html = useMemo(() => {
-    const label = getScoreLabel(score);
-    return buildReportHtml(list, score, label);
-  }, [list, score]);
+    return buildReportHtml(list, summary);
+  }, [list, summary]);
 
   const handlePrint = useCallback(() => {
     printReportHtml(html);

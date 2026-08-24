@@ -216,7 +216,7 @@ export async function POST(request: Request) {
           status?: string;
           totalCitations?: number;
           processedCount?: number;
-          integrityScore?: number;
+          integritySummary?: any;
           paperTitle?: string;
           historicalComparison?: unknown;
           downstreamRisk?: unknown;
@@ -229,8 +229,8 @@ export async function POST(request: Request) {
         if (typeof u.processedCount === "number") {
           patch.processedCount = u.processedCount;
         }
-        if (typeof u.integrityScore === "number") {
-          patch.integrityScore = u.integrityScore;
+        if (u.integritySummary !== undefined) {
+          patch.integritySummary = u.integritySummary;
         }
         if (typeof u.paperTitle === "string") patch.paperTitle = u.paperTitle;
         if (u.historicalComparison !== undefined) {
