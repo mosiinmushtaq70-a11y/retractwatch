@@ -1,5 +1,5 @@
 // DOCUMENTATION NOTE:
-// Integrity pipeline: CrossRef → Retraction Watch CSV → Semantic Scholar → Exa.
+// Integrity pipeline: OpenAlex → Retraction Watch CSV → Semantic Scholar → Exa.
 // Updates are injected (e.g. Convex). Phase 4 also persists replacements via Convex HTTP when URL is set.
 
 import { ConvexHttpClient } from "convex/browser";
@@ -40,9 +40,9 @@ export type {
 /** @deprecated Use RetractionRecord */
 export type RetractionInfo = RetractionRecord;
 
-/** CrossRef + Semantic Scholar — high-throughput concurrent pools. */
+/** OpenAlex + Semantic Scholar — high-throughput concurrent pools. */
 const POOL_DOI_RESOLVE = 10;
-const POOL_RETRACTION = 20;
+const POOL_RETRACTION = 8;
 const POOL_CASCADE_FETCH = 8;
 const POOL_REPLACEMENTS = 6;
 
@@ -261,7 +261,7 @@ export async function runPipeline(
   };
 
   try {
-    // Phase 1 — Resolve DOIs (parallel CrossRef)
+    // Phase 1 — Resolve DOIs (parallel OpenAlex)
     await emitJob({ phase: 1, name: "resolve_dois" });
     await mapPool(citations, POOL_DOI_RESOLVE, async (c) => {
       try {
@@ -391,10 +391,21 @@ export async function runPipeline(
         c.references = refs;
 
         const refChecks = await Promise.all(
-          refs.map(async (ref) => ({
-            ref,
-            ret: await isRetractedWrapper(ref.doi),
-          })),
+          refs.map(async (ref) => {
+            let ret = await isRetractedWrapper(ref.doi);
+            if (!ret && ref.doi) {
+              const isOpenAlexRet = await checkOpenAlexRetractionWrapper(ref.doi);
+              if (isOpenAlexRet) {
+                ret = {
+                  retractionReason: "Retracted (via OpenAlex Metadata)",
+                  retractionDate: "Unknown",
+                  retractionCountry: "Unknown",
+                  retractionJournal: "Unknown",
+                };
+              }
+            }
+            return { ref, ret };
+          }),
         );
         const hit = refChecks.find((x) => x.ret);
 

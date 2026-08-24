@@ -185,15 +185,43 @@ export function isRetracted(doi: string): RetractionRecord | null {
   }
 }
 
-/** Fallback check for exact normalized title match */
+/** Fallback check for exact normalized title match, followed by substring and word-overlap check */
 export function isRetractedByTitle(title: string): RetractionRecord | null {
   try {
     loadDatabase();
     const key = normalizeTitle(title);
-    if (!key || key.length < 20 || !titleMap) return null;
+    if (!key || key.length < 15 || !titleMap) return null;
     
-    // exact match
+    // 1. Exact match
     if (titleMap.has(key)) return titleMap.get(key) ?? null;
+
+    // 2. Substring match for longer titles (> 25 chars)
+    if (key.length > 25) {
+      for (const [tKey, rec] of titleMap.entries()) {
+        if (tKey.length > 25 && (tKey.includes(key) || key.includes(tKey))) {
+          return rec;
+        }
+      }
+    }
+
+    // 3. Significant word overlap matching (handles title variations like "crystal" vs "semiconductors")
+    const queryWords = new Set(key.split(/\s+/).filter((w) => w.length > 3));
+    if (queryWords.size >= 4) {
+      for (const [tKey, rec] of titleMap.entries()) {
+        const targetWords = new Set(tKey.split(/\s+/).filter((w) => w.length > 3));
+        if (targetWords.size < 4) continue;
+
+        let intersect = 0;
+        for (const w of queryWords) {
+          if (targetWords.has(w)) intersect++;
+        }
+
+        const overlap = intersect / Math.min(queryWords.size, targetWords.size);
+        if (overlap >= 0.75 && intersect >= 4) {
+          return rec;
+        }
+      }
+    }
 
     return null;
   } catch {
@@ -207,29 +235,25 @@ export function getAuthorRetractionCount(authorString: string | undefined): numb
   loadDatabase();
   if (!authorMap) return 0;
 
-  // Since authorString might be "Vaswani, A., Shazeer, N."
-  // we just parse the first few or check for highest single match.
-  const normAuth = normalizeAuthor(authorString);
-  if (normAuth.length < 4) return 0;
-
-  // Let's do a naive token presence check or just check if a known heavily retracted author is present
-  // A robust check parses individual authors. We'll split on common separators.
-  const authors = authorString.split(/[,;&]/);
+  // Split on common author list separators: commas, semicolons, ampersands, 'and'
+  const authors = authorString.split(/[,;&]|\band\b/i);
   let maxCount = 0;
   for (const a of authors) {
     const clean = normalizeAuthor(a);
-    if (clean.length > 4) {
-      // Find matches in authorMap where the map key includes the clean string,
-      // or check exact match if clean is full name.
+    if (clean.length >= 3) {
       const exact = authorMap.get(clean) || 0;
       if (exact > maxCount) maxCount = exact;
       
-      // We also check substrings in case of "Jan Hendrik Schon" vs "J H Schon"
-      // Only do this if we want broader matches, but exact normalized is safer.
+      // Also check if any key in authorMap matches this author surname/name
+      if (clean.length >= 5) {
+        for (const [authKey, count] of authorMap.entries()) {
+          if (authKey.includes(clean) || clean.includes(authKey)) {
+            if (count > maxCount) maxCount = count;
+          }
+        }
+      }
     }
   }
   
-  // As a quick fallback if exact names don't match, we can iterate all authorMap keys if we need to.
-  // For safety against false positives, we return exact matches from the split string.
   return maxCount;
 }

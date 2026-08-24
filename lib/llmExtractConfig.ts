@@ -46,7 +46,7 @@ export function loadLlmExtractConfig():
   // Force Gemini configuration if the Gemini key is present
   if (process.env.GEMINI_API_KEY?.trim()) {
     baseURL = "https://generativelanguage.googleapis.com/v1beta/openai/";
-    model = "gemini-1.5-flash";
+    model = "gemini-3.6-flash";
   }
 
   // Smart defaults and compatibility fallbacks
