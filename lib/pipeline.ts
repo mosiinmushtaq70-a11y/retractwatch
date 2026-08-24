@@ -492,34 +492,3 @@ export async function runPipeline(
 
   return { citations, integrityScore };
 }
-
-export async function testPipeline(): Promise<void> {
-  const jobId = "test-job-" + Date.now();
-  console.log("\n========== testPipeline() ==========\n");
-
-  const citations: PipelineCitation[] = [
-    { id: "c1", title: "Neural correlates of attention", year: 2019, status: "pending" },
-    { id: "c2", title: "Diet and metabolic syndrome", year: 2021, status: "pending" },
-    { id: "c3", title: "Vaccine immunogenicity trial", year: 2018, status: "pending" },
-    { id: "c4", title: "Climate models regional bias", year: 2020, status: "pending" },
-    { id: "c5", title: "CRISPR off-target effects", year: 2022, status: "pending" },
-    { id: "c6", title: "Social cognition in adolescents", year: 2017, status: "pending" },
-  ];
-
-  console.log("[updateJob]", jobId, {
-    event: "test_run_start",
-    citations: citations.length,
-  });
-
-  const fns: PipelineUpdateFns = {
-    updateCitation: (id, updates) =>
-      console.log("[updateCitation]", id, updates),
-    updateJob: (updates) => console.log("[updateJob]", updates),
-  };
-
-  const result = await runPipeline(jobId, citations, fns);
-
-  console.log("\n--- Final citations (summary) ---");
-  console.log(JSON.stringify(result.citations, null, 2));
-  console.log("\n========== end testPipeline ==========\n");
-}

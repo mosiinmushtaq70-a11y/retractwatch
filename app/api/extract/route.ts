@@ -76,18 +76,34 @@ function extractCitationsViaRegex(text: string): Array<{
   const yearRegex = /\b(19\d{2}|20\d{2})\b/;
 
   for (const line of lines) {
-    const doiMatch = line.match(doiRegex);
-    const yearMatch = line.match(yearRegex);
-    
-    // Clean citation line
-    const cleanLine = line.replace(/^\[\d+\]\s*/, "").replace(/^\d+\.\s*/, "");
+    const cleanLine = line.replace(/^\[\d+\]\s*/, "").replace(/^\d+\.\s*/, "").trim();
     if (cleanLine.length < 15) continue;
 
+    const doiMatch = cleanLine.match(/(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/);
+    const doi = doiMatch ? doiMatch[1].replace(/[.,;)]+$/, "") : null;
+
+    // Pattern: Authors (Year). Title...
+    const authorYearMatch = cleanLine.match(/^([^(]+?)\s*\((\d{4})\)\.\s*([^.]+)/i);
+    if (authorYearMatch) {
+      citations.push({
+        authors: authorYearMatch[1].trim(),
+        year: parseInt(authorYearMatch[2], 10),
+        title: authorYearMatch[3].trim(),
+        doi,
+      });
+      continue;
+    }
+
+    const yearMatch = cleanLine.match(/\b(19\d{2}|20\d{2})\b/);
+    const cleanTitle = cleanLine
+      .replace(/\s*\(?doi:\s*10\.\d{4,9}\/[^\s)]+\)?/i, "")
+      .trim();
+
     citations.push({
-      title: cleanLine,
+      title: cleanTitle,
       authors: "Unknown",
       year: yearMatch ? parseInt(yearMatch[1], 10) : null,
-      doi: doiMatch ? doiMatch[1].replace(/[.,;)]+$/, "") : null,
+      doi,
     });
   }
 

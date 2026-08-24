@@ -117,8 +117,8 @@ export function calculateIntegrityScore(citations: Citation[]): IntegrityScore {
     const cascadePenalty = cascadeRatio * CASCADE_WEIGHT;
 
     const unverifiedRatio = unverifiedCount / total;
-    // Max penalty of 10 points for unverified citations, scales up to 10 points at 50% unverified
-    const unverifiedPenalty = Math.min(10, unverifiedRatio * 20);
+    // Penalty scales with unverified ratio up to 25 points (reflecting reproducibility & provenance risk)
+    const unverifiedPenalty = Math.min(25, unverifiedRatio * 25);
 
     let score = 100 - retractedPenalty - cascadePenalty - unverifiedPenalty;
     score = applyRetractionCountCaps(score, retractedCount);

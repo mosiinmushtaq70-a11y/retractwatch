@@ -57,15 +57,7 @@ function normalizeAuthor(a: string | undefined): string {
 }
 
 function csvPath(): string {
-  try {
-    const filePath = path.resolve(process.cwd(), "data", "retraction_watch.csv");
-    console.log("[retractionWatch] retraction_watch.csv path:", filePath);
-    return filePath;
-  } catch {
-    const fallback = path.resolve(process.cwd(), "data", "retraction_watch.csv");
-    console.log("[retractionWatch] retraction_watch.csv path (fallback):", fallback);
-    return fallback;
-  }
+  return path.resolve(process.cwd(), "data", "retraction_watch.csv");
 }
 
 function pick(row: Record<string, string>, ...keys: string[]): string {
