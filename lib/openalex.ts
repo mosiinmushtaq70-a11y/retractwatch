@@ -34,7 +34,7 @@ export async function resolveDoiFromTitle(
 
     const q = cleanQuery;
     const url = buildOpenAlexUrl("works", {
-      "filter": `title.search:${q}`,
+      "filter": `default.search:${q}`,
       "per-page": "3",
     });
 
