@@ -15,6 +15,7 @@ export function loadLlmExtractConfig():
   | { ok: true; config: LlmExtractConfig }
   | { ok: false; error: string } {
   let apiKey =
+    process.env.GEMINI_API_KEY?.trim() ||
     process.env.LLM_API_KEY?.trim() ||
     process.env.OPENAI_API_KEY?.trim() ||
     "";
@@ -28,20 +29,25 @@ export function loadLlmExtractConfig():
     return {
       ok: false,
       error:
-        "No LLM API key. Set LLM_API_KEY or OPENAI_API_KEY in Vercel env (or .env.local). For Groq / NVIDIA / xAI, also set LLM_BASE_URL and LLM_MODEL.",
+        "No LLM API key. Set GEMINI_API_KEY, LLM_API_KEY or OPENAI_API_KEY in Vercel env (or .env.local). For Groq / NVIDIA / xAI, also set LLM_BASE_URL and LLM_MODEL.",
     };
   }
 
-  const baseRaw =
+  let baseURL =
     process.env.LLM_BASE_URL?.trim() ||
     process.env.OPENAI_BASE_URL?.trim() ||
-    "";
-  const baseURL = baseRaw || undefined;
+    undefined;
 
   let model =
     process.env.LLM_MODEL?.trim() ||
     process.env.OPENAI_MODEL?.trim() ||
     "";
+
+  // Force Gemini configuration if the Gemini key is present
+  if (process.env.GEMINI_API_KEY?.trim()) {
+    baseURL = "https://generativelanguage.googleapis.com/v1beta/openai/";
+    model = "gemini-2.5-flash";
+  }
 
   // Smart defaults and compatibility fallbacks
   if (baseURL?.includes("groq.com")) {

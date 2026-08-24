@@ -6,7 +6,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { mapPool } from "./asyncPool";
-import { resolveDoiFromTitle, checkCrossrefRetraction } from "./crossref";
+import { resolveDoiFromTitle, checkOpenAlexRetraction } from "./openalex";
 import { calculateDownstreamRisk } from "./downstreamRisk";
 import { compareToHistoricalCases } from "./historicalCases";
 import { extractDoiFromText, cleanTitleForCrossRef } from "./doiUtils";
@@ -41,7 +41,7 @@ export type {
 export type RetractionInfo = RetractionRecord;
 
 /** CrossRef + Semantic Scholar — high-throughput concurrent pools. */
-const POOL_DOI_RESOLVE = 3;
+const POOL_DOI_RESOLVE = 10;
 const POOL_RETRACTION = 20;
 const POOL_CASCADE_FETCH = 8;
 const POOL_REPLACEMENTS = 6;
@@ -91,11 +91,11 @@ export async function getAuthorRetractionCountWrapper(
   }
 }
 
-export async function checkCrossrefRetractionWrapper(
+export async function checkOpenAlexRetractionWrapper(
   doi: string,
 ): Promise<boolean> {
   try {
-    return await checkCrossrefRetraction(doi);
+    return await checkOpenAlexRetraction(doi);
   } catch {
     return false;
   }
@@ -322,10 +322,10 @@ export async function runPipeline(
         if (c.doi?.trim()) {
           info = await isRetractedWrapper(c.doi!);
           if (!info) {
-             const isCrossrefRetracted = await checkCrossrefRetractionWrapper(c.doi!);
-             if (isCrossrefRetracted) {
+             const isOpenAlexRetracted = await checkOpenAlexRetractionWrapper(c.doi!);
+             if (isOpenAlexRetracted) {
                  info = {
-                    retractionReason: "Retracted (via CrossRef Metadata)",
+                    retractionReason: "Retracted (via OpenAlex Metadata)",
                     retractionDate: "Unknown",
                     retractionCountry: "Unknown",
                     retractionJournal: "Unknown",
