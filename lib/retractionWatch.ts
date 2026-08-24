@@ -208,8 +208,10 @@ export function isRetractedByTitle(title: string): RetractionRecord | null {
           if (targetWords.has(w)) intersect++;
         }
 
-        const overlap = intersect / Math.min(queryWords.size, targetWords.size);
-        if (overlap >= 0.75 && intersect >= 4) {
+        const union = queryWords.size + targetWords.size - intersect;
+        const jaccard = intersect / union;
+        
+        if (jaccard >= 0.85 && intersect >= 4) {
           return rec;
         }
       }

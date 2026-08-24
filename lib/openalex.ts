@@ -62,6 +62,11 @@ export async function resolveDoiFromTitle(
     // Strategy 1: Title search (exact phrase match in title)
     let results = await queryOpenAlex(`title.search:${cleanQuery}`);
 
+    // Strategy 2: Default fulltext search fallback
+    if (!results || results.length === 0) {
+      results = await queryOpenAlex(`default.search:${cleanQuery}`);
+    }
+
     if (!results || results.length === 0) return null;
 
     const top = results[0];
