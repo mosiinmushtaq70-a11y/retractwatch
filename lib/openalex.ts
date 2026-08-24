@@ -16,6 +16,15 @@ function buildOpenAlexUrl(endpoint: string, queryParams: Record<string, string>)
   return `https://api.openalex.org/${endpoint}?${params.toString()}`;
 }
 
+let globalWaitPromise: Promise<void> = Promise.resolve();
+
+async function openAlexFetch(url: string, init: RequestInit): Promise<Response> {
+  const p = globalWaitPromise.then(() => new Promise<void>((resolve) => setTimeout(resolve, 120)));
+  globalWaitPromise = p.catch(() => {});
+  await p;
+  return fetch(url, init);
+}
+
 export type ResolveDoiFromTitleResult = string | null;
 
 export async function resolveDoiFromTitle(
@@ -39,7 +48,7 @@ export async function resolveDoiFromTitle(
         filter: filterExpr,
         "per-page": "3",
       });
-      const res = await fetch(url, {
+      const res = await openAlexFetch(url, {
         headers: { Accept: "application/json" },
         signal: AbortSignal.timeout(8000),
       });
@@ -52,11 +61,6 @@ export async function resolveDoiFromTitle(
 
     // Strategy 1: Title search (exact phrase match in title)
     let results = await queryOpenAlex(`title.search:${cleanQuery}`);
-
-    // Strategy 2: Default fulltext search fallback
-    if (!results || results.length === 0) {
-      results = await queryOpenAlex(`default.search:${cleanQuery}`);
-    }
 
     if (!results || results.length === 0) return null;
 
@@ -79,7 +83,7 @@ export async function checkOpenAlexRetraction(doi: string): Promise<boolean> {
 
     const url = buildOpenAlexUrl(`works/https://doi.org/${encodeURIComponent(cleanDoi)}`, {});
 
-    const res = await fetch(url, {
+    const res = await openAlexFetch(url, {
       headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(8000),
     });

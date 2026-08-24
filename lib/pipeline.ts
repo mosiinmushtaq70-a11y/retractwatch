@@ -393,21 +393,10 @@ export async function runPipeline(
         c.references = refs;
 
         const refChecks = await Promise.all(
-          refs.map(async (ref) => {
-            let ret = await isRetractedWrapper(ref.doi);
-            if (!ret && ref.doi) {
-              const isOpenAlexRet = await checkOpenAlexRetractionWrapper(ref.doi);
-              if (isOpenAlexRet) {
-                ret = {
-                  retractionReason: "Retracted (via OpenAlex Metadata)",
-                  retractionDate: "Unknown",
-                  retractionCountry: "Unknown",
-                  retractionJournal: "Unknown",
-                };
-              }
-            }
-            return { ref, ret };
-          }),
+          refs.map(async (ref) => ({
+            ref,
+            ret: await isRetractedWrapper(ref.doi),
+          }))
         );
         const hit = refChecks.find((x) => x.ret);
 
